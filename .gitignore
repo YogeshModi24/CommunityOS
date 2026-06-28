@@ -1,0 +1,40 @@
+# Dependency Directories
+node_modules/
+jspm_packages/
+
+# Build Outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Compiled JavaScript (only in packages where index.ts is compiled next to it)
+packages/*/*.js
+packages/*/*.d.ts
+packages/*/*.d.ts.map
+packages/*/*.js.map
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+packages/*/src/**/*.js.map
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local.example
+
+# IDEs & System Files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
