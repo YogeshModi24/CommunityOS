@@ -1,0 +1,1 @@
+{"version":3,"file":"security.d.ts","sourceRoot":"","sources":["security.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,aAAa;IAC5B,QAAQ,EAAE,OAAO,CAAC;IAClB,MAAM,EAAE,OAAO,CAAC;IAChB,QAAQ,EAAE,KAAK,GAAG,QAAQ,GAAG,MAAM,CAAC;IACpC,MAAM,EAAE,MAAM,CAAC;CAChB;AAED,eAAO,MAAM,aAAa,EAAE,aAK3B,CAAC;AAEF,eAAO,MAAM,UAAU;;;;;;;;CAQtB,CAAC;AAEF,eAAO,MAAM,UAAU;;;;;;;;;;;;;;;;;CAiBtB,CAAC"}
