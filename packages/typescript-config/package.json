@@ -1,0 +1,22 @@
+{
+  "name": "@community-os/typescript-config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared TypeScript configurations for CommunityOS",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./base.json": "./base.json",
+    "./nextjs.json": "./nextjs.json",
+    "./node.json": "./node.json"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --noEmit",
+    "clean": "tsc --build --clean && rm -rf dist tsconfig.tsbuildinfo",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix"
+  }
+}
