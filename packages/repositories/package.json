@@ -1,0 +1,29 @@
+{
+  "name": "@community-os/repositories",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CommunityOS repository layer package",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@community-os/errors": "*",
+    "@community-os/logger": "*",
+    "@community-os/types": "*",
+    "mongoose": "^8.0.0"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --noEmit",
+    "clean": "tsc --build --clean && rm -rf dist tsconfig.tsbuildinfo",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.9"
+  }
+}
