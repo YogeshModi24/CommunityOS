@@ -1,0 +1,8 @@
+{
+  "extends": "../../packages/typescript-config/node.json",
+  "compilerOptions": {
+    "rootDir": "../../"
+  },
+  "include": ["src/**/*", "../api/src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
