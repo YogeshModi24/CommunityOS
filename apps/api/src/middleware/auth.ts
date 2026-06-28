@@ -37,3 +37,12 @@ export function authMiddleware(req: AuthRequest, _res: Response, next: NextFunct
     next(new UnauthorizedError('Invalid or expired token'));
   }
 }
+export function requireRole(allowedRoles: string[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.userRole || !allowedRoles.includes(req.userRole)) {
+      next(new UnauthorizedError('Insufficient permissions'));
+      return;
+    }
+    next();
+  };
+}

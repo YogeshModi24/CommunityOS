@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { citizenAssistantStream } from '../controllers/aiController';
-import { authMiddleware } from '../middleware/auth';
+import { citizenAssistantStream, copilotStream } from '../controllers/aiController';
+import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
 
@@ -9,5 +9,6 @@ const router = Router();
 router.use(authMiddleware);
 
 router.post('/assistant/citizen', citizenAssistantStream as any);
+router.post('/assistant/copilot', requireRole(['admin', 'municipality']), copilotStream as any);
 
 export default router;

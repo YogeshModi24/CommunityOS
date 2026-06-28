@@ -9,6 +9,7 @@ import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { DashboardHero } from '@/components/dashboard/DashboardHero';
 import { InfrastructureRibbon } from '@/components/dashboard/InfrastructureRibbon';
 import { LeaderboardPreview } from '@/components/dashboard/LeaderboardPreview';
+import { MunicipalityCopilot } from '@/components/dashboard/MunicipalityCopilot';
 import { QuickActionCard } from '@/components/dashboard/QuickActionCard';
 import { TelemetryPanel } from '@/components/dashboard/TelemetryPanel';
 import { OSStateView } from '@/components/layout/OSStateView';
@@ -65,79 +66,91 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 pb-20 lg:pb-12 max-w-7xl mx-auto w-full pt-4 font-body selection:bg-primary/30">
-      {/* 1. Mission Control Hero */}
-      <DashboardHero user={user} xp={xp} level={level} />
+    <div className="max-w-screen-2xl mx-auto w-full pt-4 font-body selection:bg-primary/30">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 px-4">
+        
+        {/* Main Content Column */}
+        <div className="xl:col-span-3 space-y-8 pb-20 lg:pb-12">
+          {/* 1. Mission Control Hero */}
+          <DashboardHero user={user} xp={xp} level={level} />
 
-      {/* Sync Status Header */}
-      <div className="flex justify-between items-end border-b border-white/5 pb-2 px-1 mt-8 mb-4">
-        <h2 className="text-xl font-display font-bold text-white tracking-wide uppercase">
-          System Overview
-        </h2>
-        {lastSync && (
-          <div className="flex items-center gap-2 text-xs font-mono text-text-tertiary">
-            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin text-citizen' : ''}`} />
-            Last synchronized {formatDistanceToNow(lastSync, { addSuffix: true })}
+          {/* Sync Status Header */}
+          <div className="flex justify-between items-end border-b border-white/5 pb-2 px-1 mt-8 mb-4">
+            <h2 className="text-xl font-display font-bold text-white tracking-wide uppercase">
+              System Overview
+            </h2>
+            {lastSync && (
+              <div className="flex items-center gap-2 text-xs font-mono text-text-tertiary">
+                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin text-citizen' : ''}`} />
+                Last synchronized {formatDistanceToNow(lastSync, { addSuffix: true })}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* 2. Infrastructure Status Ribbon */}
-      <InfrastructureRibbon
-        totalReports={dashboardData?.totalReports || 0}
-        resolvedReports={dashboardData?.resolvedReports || 0}
-        pendingReports={dashboardData?.pendingReports || 0}
-        points={dashboardData?.points || 0}
-        isLoading={loading}
-      />
+          {/* 2. Infrastructure Status Ribbon */}
+          <InfrastructureRibbon
+            totalReports={dashboardData?.totalReports || 0}
+            resolvedReports={dashboardData?.resolvedReports || 0}
+            pendingReports={dashboardData?.pendingReports || 0}
+            points={dashboardData?.points || 0}
+            isLoading={loading}
+          />
 
-      {/* 3. Priority Workspace (Activity + Telemetry Overview) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <ActivityTimeline activities={dashboardData?.recentActivity || []} isLoading={loading} />
-        </div>
-        <div className="lg:col-span-2">
-          <TelemetryPanel data={dashboardData} isLoading={loading} />
-        </div>
-      </div>
+          {/* 3. Priority Workspace (Activity + Telemetry Overview) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <ActivityTimeline activities={dashboardData?.recentActivity || []} isLoading={loading} />
+            </div>
+            <div className="lg:col-span-2">
+              <TelemetryPanel data={dashboardData} isLoading={loading} />
+            </div>
+          </div>
 
-      {/* 4. Quick Actions & Leaderboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 flex flex-col">
-          <h2 className="text-2xl font-display font-bold text-white mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
-            <QuickActionCard
-              title="Report Issue"
-              description="Log a new infrastructure failure with AI-assisted categorization."
-              icon={<ShieldAlert className="w-6 h-6" aria-hidden="true" />}
-              href="/report"
-              colorClass="text-accent border-accent/20 bg-accent/10"
-              delay={0.1}
-            />
-            <QuickActionCard
-              title="Community Feed"
-              description="Browse and vote on issues reported by other citizens in your ward."
-              icon={<Radio className="w-6 h-6" aria-hidden="true" />}
-              href="/feed"
-              colorClass="text-primary border-primary/20 bg-primary/10"
-              delay={0.2}
-            />
-            <QuickActionCard
-              title="Live Telemetry"
-              description="View real-time clustering and analytics of infrastructure health."
-              icon={<Activity className="w-6 h-6" aria-hidden="true" />}
-              href="/map"
-              colorClass="text-success border-success/20 bg-success/10"
-              delay={0.3}
-            />
+          {/* 4. Leaderboard & Quick Actions */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <h2 className="text-2xl font-display font-bold text-white mb-6">Rankings</h2>
+              <LeaderboardPreview leaderboard={dashboardData?.leaderboard || []} isLoading={loading} />
+            </div>
+            <div className="lg:col-span-2">
+              <h2 className="text-2xl font-display font-bold text-white mb-6">Quick Actions</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <QuickActionCard
+                  title="Report Issue"
+                  description="Log a new infrastructure failure."
+                  icon={<ShieldAlert className="w-6 h-6" aria-hidden="true" />}
+                  href="/report"
+                  colorClass="text-accent border-accent/20 bg-accent/10"
+                  delay={0.1}
+                />
+                <QuickActionCard
+                  title="Community Feed"
+                  description="Browse and vote on issues."
+                  icon={<Radio className="w-6 h-6" aria-hidden="true" />}
+                  href="/feed"
+                  colorClass="text-primary border-primary/20 bg-primary/10"
+                  delay={0.2}
+                />
+                <QuickActionCard
+                  title="Live Telemetry"
+                  description="View real-time clustering analytics."
+                  icon={<Activity className="w-6 h-6" aria-hidden="true" />}
+                  href="/map"
+                  colorClass="text-success border-success/20 bg-success/10"
+                  delay={0.3}
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="lg:col-span-1">
-          <h2 className="text-2xl font-display font-bold text-white mb-6 lg:invisible hidden lg:block">
-            Rankings
-          </h2>
-          <LeaderboardPreview leaderboard={dashboardData?.leaderboard || []} isLoading={loading} />
+
+        {/* Persistent Right Panel for Copilot */}
+        <div className="xl:col-span-1">
+          <div className="sticky top-24">
+            <MunicipalityCopilot />
+          </div>
         </div>
+
       </div>
     </div>
   );

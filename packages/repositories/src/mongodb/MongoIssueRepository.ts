@@ -135,6 +135,7 @@ export class MongoIssueRepository implements IIssueRepository {
       category?: string;
       status?: string;
       ward?: string;
+      department?: string;
       severity?: number;
       reporterId?: string;
       location?: {
@@ -154,6 +155,7 @@ export class MongoIssueRepository implements IIssueRepository {
     if (filter.category && filter.category !== 'all') query.category = filter.category;
     if (filter.status) query.status = filter.status;
     if (filter.ward) query.ward = filter.ward;
+    if (filter.department) query.department = filter.department;
     if (filter.severity) query.severity = Number(filter.severity);
     if (filter.reporterId) query.reporter_id = new Types.ObjectId(filter.reporterId);
 
@@ -254,5 +256,87 @@ export class MongoIssueRepository implements IIssueRepository {
 
   async deleteAll(): Promise<void> {
     await IssueMongoose.deleteMany({});
+  }
+
+  async getDashboardStats(): Promise<{ totalIssues: number; resolvedIssues: number; openIssues: number }> {
+    const [totalStats, resolvedStats, openStats] = await Promise.all([
+      IssueMongoose.countDocuments(),
+      IssueMongoose.countDocuments({ status: 'resolved' }),
+      IssueMongoose.countDocuments({ status: { $in: ['open', 'verified', 'in_progress'] } }),
+    ]);
+
+    return {
+      totalIssues: totalStats,
+      resolvedIssues: resolvedStats,
+      openIssues: openStats,
+    };
+  }
+
+  async getDepartmentWorkload(): Promise<{ department: string; count: number }[]> {
+    const workload = await IssueMongoose.aggregate([
+      { $match: { status: { $ne: 'resolved' } } },
+      { $group: { _id: '$department', count: { $sum: 1 } } },
+    ]);
+    return workload.map((w: any) => ({
+      department: w._id || 'unassigned',
+      count: w.count,
+    }));
+  }
+
+  async getSlaOverview(): Promise<{ expired: number; active: number }> {
+    const now = new Date();
+    const stats = await IssueMongoose.aggregate([
+      { $match: { status: { $ne: 'resolved' }, estimated_sla_days: { $exists: true } } },
+      {
+        $project: {
+          sla_due_date: {
+            $add: ['$createdAt', { $multiply: ['$estimated_sla_days', 24 * 60 * 60 * 1000] }],
+          },
+        },
+      },
+      {
+        $project: {
+          status: {
+            $cond: {
+              if: { $lt: ['$sla_due_date', now] },
+              then: 'expired',
+              else: 'active',
+            },
+          },
+        },
+      },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]);
+
+    let expired = 0;
+    let active = 0;
+    stats.forEach((s: any) => {
+      if (s._id === 'expired') expired = s.count;
+      if (s._id === 'active') active = s.count;
+    });
+
+    return { expired, active };
+  }
+
+  async getCategoryDistribution(): Promise<{ category: string; count: number }[]> {
+    const dist = await IssueMongoose.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+    ]);
+    return dist.map((d: any) => ({
+      category: d._id || 'unknown',
+      count: d.count,
+    }));
+  }
+
+  async getCriticalIssueSummary(): Promise<{ total: number; issues: Issue[] }> {
+    const docs = await IssueMongoose.find({ severity: { $gte: 4 }, status: { $ne: 'resolved' } })
+      .sort({ priority_score: -1 })
+      .limit(10)
+      .lean();
+    
+    const issues = docs.map(mapMongoIssue);
+    const total = await IssueMongoose.countDocuments({ severity: { $gte: 4 }, status: { $ne: 'resolved' } });
+    
+    return { total, issues };
   }
 }

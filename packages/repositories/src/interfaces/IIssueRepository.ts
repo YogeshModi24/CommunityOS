@@ -19,6 +19,7 @@ export interface IIssueRepository {
       category?: string;
       status?: string;
       ward?: string;
+      department?: string;
       severity?: number;
       reporterId?: string;
       location?: {
@@ -40,4 +41,11 @@ export interface IIssueRepository {
     pending: number;
   }>;
   deleteAll(): Promise<void>;
+  
+  // Analytics methods
+  getDashboardStats(): Promise<{ totalIssues: number; resolvedIssues: number; openIssues: number }>;
+  getDepartmentWorkload(): Promise<{ department: string; count: number }[]>;
+  getSlaOverview(): Promise<{ expired: number; active: number }>;
+  getCategoryDistribution(): Promise<{ category: string; count: number }[]>;
+  getCriticalIssueSummary(): Promise<{ total: number; issues: Issue[] }>;
 }

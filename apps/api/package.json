@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "ts-node src/seed.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "NODE_OPTIONS=--max-old-space-size=4096 tsc --noEmit",
     "clean": "rm -rf dist .next tsconfig.tsbuildinfo",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
