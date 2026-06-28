@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+.turbo/
+package-lock.json
+*.tsbuildinfo
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+packages/*/src/**/*.js.map
