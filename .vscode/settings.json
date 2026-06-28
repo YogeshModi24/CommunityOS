@@ -1,0 +1,23 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": [
+    "./apps/api",
+    "./apps/web",
+    "./apps/admin",
+    "./apps/worker",
+    "./packages/ui",
+    "./packages/types",
+    "./packages/config",
+    "./packages/utils",
+    "./packages/hooks",
+    "./packages/database",
+    "./packages/tailwind-config",
+    "./packages/eslint-config",
+    "./packages/typescript-config"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
