@@ -1,49 +1,133 @@
 # CommunityOS
 
-Welcome to **CommunityOS** (formerly CommunityHero), the enterprise-grade monorepo platform designed to scale municipal services, smart city systems, and citizen engagement.
+> AI-powered Civic Operating System for modern cities.
 
-This repository is structured as an npm workspaces monorepo managed with Turborepo for optimized build orchestration, type checking, and linting.
+![Build Status](https://img.shields.io/badge/build-passing-success?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-green?style=flat-square&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-black?style=flat-square&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-green?style=flat-square&logo=mongodb&logoColor=white)
+![Turborepo](https://img.shields.io/badge/Turborepo-red?style=flat-square&logo=vercel&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
----
+CommunityOS is a comprehensive, open-source platform designed to bridge the gap between citizens and their local municipalities. It provides an intuitive reporting interface, real-time telemetry, AI-powered issue classification, and powerful geographic visualizations.
 
-## 1. Directory Structure
+## Screenshots
 
+<div align="center">
+  <img src="docs/images/landing.png" width="48%" alt="Landing Page">
+  <img src="docs/images/dashboard.png" width="48%" alt="Mission Control Dashboard">
+</div>
+<div align="center">
+  <img src="docs/images/map.png" width="48%" alt="Interactive Map">
+  <img src="docs/images/feed.png" width="48%" alt="Live Feed">
+</div>
+
+## Features
+
+### 🏛️ Citizen Experience
+- **Report Issues:** Submit infrastructure issues, potholes, or safety hazards with photos.
+- **Live Feed:** See a real-time stream of all reported issues in the community.
+- **Leaderboards:** Gamified civic engagement to encourage active community participation.
+
+### 📊 Municipality Dashboard
+- **Mission Control:** High-level telemetry of the city's infrastructure health.
+- **Interactive Maps:** WebGL-powered clustered map visualization using Mapbox GL JS.
+- **Real-time Notifications:** WebSocket-powered live updates of incoming reports.
+
+### 🤖 AI Features
+- **Automated Classification:** Uses OpenAI Vision to automatically categorize reports, assess severity, and detect hazards.
+- **Smart Moderation:** Prevents spam and inappropriate content.
+
+### ⚙️ Engineering
+- **Turborepo:** High-performance build system for the monorepo architecture.
+- **Shared Packages:** Isolated UI components, hooks, validation schemas, and database clients.
+- **Type Safety:** End-to-end TypeScript enforcement.
+
+## Architecture
+
+CommunityOS is built using a modern decoupled architecture.
+
+```mermaid
+graph TD
+  Browser -->|Next.js App Router| Next.js
+  Next.js -->|REST API| Express[Express API]
+  Express -->|Read/Write| MongoDB[(MongoDB)]
+  Express -->|Image Uploads| Cloudinary[Cloudinary API]
+  Express -->|Geocoding| Mapbox[Mapbox API]
+  Express -->|Image Analysis| OpenAI[OpenAI Vision API]
+  Express -.->|Queue Processing| Worker[Background Worker]
+  Worker --> MongoDB
 ```
+
+## Monorepo Structure
+
+```text
+.
 ├── apps/
-│   ├── web/               # Next.js 14 web client
-│   ├── api/               # Express backend
-│   ├── admin/             # Next.js admin placeholder
-│   └── worker/            # Background BullMQ/Redis worker
+│   ├── web/        # Next.js 14 Frontend Application
+│   ├── api/        # Express.js REST API Backend
+│   ├── worker/     # Background job processing (AI categorization)
+│   └── admin/      # Internal backoffice tools
 ├── packages/
-│   ├── typescript-config/ # Centralizedstrict TypeScript configurations
-│   ├── eslint-config/     # Centralized ESLint configurations & boundary rules
-│   ├── tailwind-config/   # Shared design token configs
-│   ├── ui/                # Shared Tailwind variables & css theme
-│   ├── database/          # Shared Prisma database setup
-│   ├── types/             # Shared TypeScript types & Zod schemas
-│   ├── config/            # Shared configuration manager
-│   ├── utils/             # Shared utilities (logging, helpers)
-│   └── hooks/             # Shared React hooks
+│   ├── ui/         # Shared React components (TailwindCSS)
+│   ├── database/   # Prisma ORM and DB client
+│   ├── validation/ # Shared Zod schemas (API & Frontend)
+│   ├── config/     # Environment variable validation
+│   └── logger/     # Standardized logging
+└── docs/           # Architecture and API documentation
 ```
 
----
+## Tech Stack
 
-## 2. Developer Commands
+- **Frontend:** Next.js 14, React, Tailwind CSS, Lucide Icons, Mapbox GL JS
+- **Backend:** Node.js, Express, Socket.io
+- **Database:** MongoDB, Prisma ORM, Redis (Queues)
+- **Tooling:** TypeScript, Turborepo, ESLint, Prettier
 
-All standard operations are triggered from the repository root:
+## Quick Start
 
-- **Launch Local Stack**: `npm run dev`
-- **Build All Workspaces**: `npm run build`
-- **Lint Codebase**: `npm run lint`
-- **Format Codebase**: `npm run format`
-- **Typecheck Codebase**: `npm run typecheck`
-- **Check All Gated Standards (Format, Lint, Typecheck, Build)**: `npm run check`
-- **Verify Readiness**: `npm run verify`
-- **Clean Build Artifacts**: `npm run clean`
+### 1. Clone the repository
+```bash
+git clone https://github.com/YogeshModi24/CommunityOS.git
+cd CommunityOS
+```
 
----
+### 2. Install dependencies
+```bash
+npm install
+```
 
-## 3. Developer Documentation
+### 3. Environment Variables
+Never expose secrets! Use the provided example files to set up your local environment:
+- `apps/api/.env.example` -> `apps/api/.env`
+- `apps/web/.env.local.example` -> `apps/web/.env.local`
 
-- For contribution workflows, see [CONTRIBUTING.md](./CONTRIBUTING.md).
-- For local environment setup and configuration, see [DEVELOPMENT.md](./DEVELOPMENT.md).
+### 4. Run Locally
+```bash
+npm run dev
+```
+
+This will concurrently start the `web`, `api`, and `worker` applications using Turborepo.
+
+## Documentation
+
+For a deeper dive, read the comprehensive documentation:
+- [System Architecture](docs/architecture/system-overview.md)
+- [API Reference](docs/api/api-overview.md)
+- [Deployment Guide](docs/guides/deployment.md)
+- [Contributing](CONTRIBUTING.md)
+
+## Roadmap
+
+- [x] Citizen Reporting App
+- [x] Municipality Mission Control
+- [x] AI Vision Classification
+- [x] Mapbox GL Clustering
+- [ ] Mobile Application (React Native)
+- [ ] Push Notifications
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
