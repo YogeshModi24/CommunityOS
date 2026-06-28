@@ -4,6 +4,8 @@ export interface AIAnalysisResponse {
   description: string;
   hazardous: boolean;
   confidence: number;
+  department: string;
+  estimated_sla_days: number;
   aiVersion: string;
   modelName: string;
   promptVersion: string;
@@ -12,4 +14,5 @@ export interface AIAnalysisResponse {
 
 export interface IAIProvider {
   analyzeImage(imageUrl: string): Promise<AIAnalysisResponse>;
+  chatStream(messages: { role: string; content: string }[], systemPrompt: string): AsyncGenerator<string>;
 }

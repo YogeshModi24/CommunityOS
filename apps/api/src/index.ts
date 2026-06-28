@@ -13,6 +13,7 @@ import { logger } from './lib/logger';
 import { correlationIdMiddleware } from './middleware/correlationId';
 import { errorHandler } from './middleware/error';
 import { requestLogger } from './middleware/requestLogger';
+import aiRoutes from './routes/ai';
 import issueRoutes from './routes/issues';
 import notificationRoutes from './routes/notifications';
 import userRoutes from './routes/users';
@@ -39,6 +40,7 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use('/api/issues', issueRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

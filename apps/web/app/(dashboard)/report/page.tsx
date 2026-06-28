@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
+import { CitizenAssistant } from '@/components/CitizenAssistant';
 import { ToastContainer } from '@/components/ui/primitives';
 import { api } from '@/lib/api';
 
@@ -714,6 +715,7 @@ export default function ReportPage() {
           )}
         </AnimatePresence>
       </div>
+      <CitizenAssistant />
     </div>
   );
 }

@@ -54,6 +54,8 @@ export interface IssueAnalyzed extends DomainEvent {
         severity: number;
         hazardous: boolean;
         confidence: number;
+        department: string;
+        estimated_sla_days: number;
         aiVersion: string;
         modelName: string;
         promptVersion: string;

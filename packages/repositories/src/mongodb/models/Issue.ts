@@ -29,12 +29,16 @@ export interface IIssue extends Document {
   ai_confidence: number;
   ai_description: string;
   hazardous: boolean;
+  department?: string;
+  estimated_sla_days?: number;
   ai_analysis?: {
     category: string;
     severity: number;
     description: string;
     hazardous: boolean;
     confidence: number;
+    department: string;
+    estimated_sla_days: number;
     aiVersion: string;
     modelName: string;
     promptVersion: string;
@@ -89,12 +93,16 @@ const IssueSchema = new Schema<IIssue>(
     ai_confidence: Number,
     ai_description: String,
     hazardous: { type: Boolean, default: false },
+    department: { type: String },
+    estimated_sla_days: { type: Number },
     ai_analysis: {
       category: String,
       severity: Number,
       description: String,
       hazardous: Boolean,
       confidence: Number,
+      department: String,
+      estimated_sla_days: Number,
       aiVersion: String,
       modelName: String,
       promptVersion: String,

@@ -155,6 +155,8 @@ export class IssueService implements IIssueService {
       description: string;
       hazardous: boolean;
       confidence: number;
+      department: string;
+      estimated_sla_days: number;
       aiVersion: string;
       modelName: string;
       promptVersion: string;
@@ -168,6 +170,8 @@ export class IssueService implements IIssueService {
       ai_description: analysis.description,
       hazardous: analysis.hazardous,
       priority_score: priorityScore,
+      department: analysis.department,
+      estimated_sla_days: analysis.estimated_sla_days,
       category: analysis.category as IssueCategory,
       severity: analysis.severity as 1 | 2 | 3 | 4 | 5,
       description: analysis.description,

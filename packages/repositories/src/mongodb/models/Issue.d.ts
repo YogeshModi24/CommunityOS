@@ -24,12 +24,16 @@ export interface IIssue extends Document {
     ai_confidence: number;
     ai_description: string;
     hazardous: boolean;
+    department?: string;
+    estimated_sla_days?: number;
     ai_analysis?: {
         category: string;
         severity: number;
         description: string;
         hazardous: boolean;
         confidence: number;
+        department: string;
+        estimated_sla_days: number;
         aiVersion: string;
         modelName: string;
         promptVersion: string;

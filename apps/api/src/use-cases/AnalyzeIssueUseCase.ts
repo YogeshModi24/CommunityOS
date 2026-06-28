@@ -98,6 +98,8 @@ export class AnalyzeIssueUseCase {
           severity: analysis.severity,
           hazardous: analysis.hazardous,
           confidence: analysis.confidence,
+          department: analysis.department,
+          estimated_sla_days: analysis.estimated_sla_days,
           aiVersion: analysis.aiVersion,
           modelName: analysis.modelName,
           promptVersion: analysis.promptVersion,

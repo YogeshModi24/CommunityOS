@@ -14,4 +14,11 @@ export class AIService implements IAIService {
       return Result.fail(`AI provider analysis failed: ${err.message || err}`);
     }
   }
+
+  async *chatStream(
+    messages: { role: string; content: string }[],
+    systemPrompt: string
+  ): AsyncGenerator<string> {
+    yield* this.aiProvider.chatStream(messages, systemPrompt);
+  }
 }

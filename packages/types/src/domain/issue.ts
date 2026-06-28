@@ -45,6 +45,8 @@ export interface AIAnalysisSubDocument {
   description: string;
   hazardous: boolean;
   confidence: number;
+  department: string;
+  estimated_sla_days: number;
   aiVersion: string; // e.g., 'v1'
   modelName: string; // e.g., 'gpt-4o'
   promptVersion: string; // e.g., 'v1'
@@ -68,6 +70,8 @@ export interface Issue {
   ai_confidence?: number;
   ai_description?: string;
   hazardous: boolean;
+  department?: string;
+  estimated_sla_days?: number;
   ai_analysis?: AIAnalysisSubDocument;
   votes: number;
   voter_ids: string[];
