@@ -12,9 +12,16 @@ export class ApplicationError extends Error {
     this.retryable = retryable;
     this.details = details;
     Object.setPrototypeOf(this, new.target.prototype);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
+    const captureStackTrace = (
+      Error as ErrorConstructor & {
+        captureStackTrace?: (
+          targetObject: object,
+          constructorOpt?: abstract new (...args: never[]) => unknown
+        ) => void;
+      }
+    ).captureStackTrace;
+
+    captureStackTrace?.(this, this.constructor);
   }
 
   public toJSON() {
