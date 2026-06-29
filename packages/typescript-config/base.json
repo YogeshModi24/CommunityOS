@@ -20,6 +20,7 @@
     "forceConsistentCasingInFileNames": true,
     "composite": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "ignoreDeprecations": "5.0"
   }
 }
