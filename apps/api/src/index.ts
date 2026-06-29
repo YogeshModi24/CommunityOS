@@ -102,13 +102,20 @@ app.use(errorHandler);
 export let io: Server;
 
 async function main(): Promise<void> {
+  const httpServer = createServer(app);
+
+  httpServer.listen(env.PORT as number, '0.0.0.0', () => {
+    logger.info(`[Server] Running on port ${env.PORT}`, {
+      event: 'server_started',
+      port: env.PORT,
+      clientUrl: env.CLIENT_URL,
+    });
+  });
+
   // Connect to MongoDB
   await connectDB();
 
   // BullMQ manages its own Redis connection via URL string
-  const httpServer = createServer(app);
-
-  // Initialize Socket.io
   io = new Server(httpServer, {
     cors: { origin: env.CLIENT_URL, methods: ['GET', 'POST'], credentials: true },
   });
@@ -172,14 +179,6 @@ async function main(): Promise<void> {
   // Register event listeners (persistent notifications & socket broadcasts)
   const eventBus = container.resolve<any>('eventBus');
   registerEventHandlers(eventBus, io, container);
-
-  httpServer.listen(env.PORT as number, '0.0.0.0', () => {
-    logger.info(`[Server] Running on port ${env.PORT}`, {
-      event: 'server_started',
-      port: env.PORT,
-      clientUrl: env.CLIENT_URL,
-    });
-  });
 }
 
 main().catch((err) => {
