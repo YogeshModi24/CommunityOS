@@ -24,7 +24,7 @@ const nextAuthResult = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
+          const res = await fetch(`${API_URL}/api/users/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ const nextAuthResult = NextAuth({
 
       // Try rotating token on server-side NextAuth flow
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/refresh`, {
+        const response = await fetch(`${API_URL}/api/users/refresh`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
