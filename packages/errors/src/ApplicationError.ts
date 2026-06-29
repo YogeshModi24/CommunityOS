@@ -21,7 +21,7 @@ export class ApplicationError extends Error {
       }
     ).captureStackTrace;
 
-    captureStackTrace?.(this, this.constructor);
+    captureStackTrace?.(this, this.constructor as abstract new (...args: never[]) => unknown);
   }
 
   public toJSON() {
