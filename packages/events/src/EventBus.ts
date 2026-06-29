@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { DomainEvent } from './events';
 import { LoggerFactory } from '@community-os/logger';
 
