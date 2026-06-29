@@ -1,6 +1,9 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
+// Force NextAuth v5 to trust the host when deployed on Vercel
+process.env.AUTH_TRUST_HOST = 'true';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) throw new Error('NEXT_PUBLIC_API_URL environment variable is required');
 
