@@ -12,7 +12,7 @@
     "test": "turbo run test",
     "clean": "turbo run clean",
     "verify": "npm run check",
-    "prepare": "husky"
+    "prepare": "command -v husky >/dev/null 2>&1 && husky || true"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.1.0",
