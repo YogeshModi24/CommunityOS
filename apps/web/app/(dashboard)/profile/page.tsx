@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Award, Bell, LayoutDashboard, MapPin, Shield } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { OSStateView } from '@/components/layout/OSStateView';
 import { Avatar, ProgressRing } from '@/components/ui/primitives';
 import { useCitizen } from '@/providers/CitizenProvider';
 
@@ -23,21 +24,30 @@ const TABS = [
 ];
 
 export default function ProfilePage() {
-  const { state: { profile, insights, loading, error } } = useCitizen();
+  const {
+    state: { profile, insights, loading, error },
+  } = useCitizen();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="animate-pulse text-primary font-mono tracking-widest">LOADING_PROFILE...</div>
+        <div className="animate-pulse text-primary font-mono tracking-widest">
+          LOADING_PROFILE...
+        </div>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="flex h-full items-center justify-center text-danger">
-        Error loading profile: {error || 'User not found'}
+      <div className="pt-20 px-4">
+        <OSStateView
+          type="error"
+          title="Profile Data Unavailable"
+          description={error || 'We could not load your civic profile.'}
+          action={{ label: 'Retry', onClick: () => window.location.reload() }}
+        />
       </div>
     );
   }
@@ -63,25 +73,38 @@ export default function ProfilePage() {
         </div>
 
         <div className="card p-6 flex flex-col justify-center relative overflow-hidden">
-           <div className="absolute bottom-0 right-0 p-24 bg-accent/5 rounded-full blur-2xl" />
-           <div className="flex items-center gap-6 z-10">
-             <ProgressRing value={reputation?.xpProgress ? reputation.xpProgress * 100 : 0} size={80} color="#7C3AED" stroke={6}>
-               <span className="text-xl font-bold text-white">{reputation?.level || 1}</span>
-             </ProgressRing>
-             <div>
-               <p className="text-sm text-text-secondary font-mono tracking-widest uppercase">Civic Level</p>
-               <p className="text-xl font-display font-bold text-accent-300 mt-1">{reputation?.rankTitle || 'Citizen'}</p>
-               <p className="text-xs text-text-tertiary mt-1">
-                 {reputation?.points || 0} / {reputation?.nextLevelPoints || 10} XP
-               </p>
-             </div>
-           </div>
+          <div className="absolute bottom-0 right-0 p-24 bg-accent/5 rounded-full blur-2xl" />
+          <div className="flex items-center gap-6 z-10">
+            <ProgressRing
+              value={reputation?.xpProgress ? reputation.xpProgress * 100 : 0}
+              size={80}
+              color="#7C3AED"
+              stroke={6}
+            >
+              <span className="text-xl font-bold text-white">{reputation?.level || 1}</span>
+            </ProgressRing>
+            <div>
+              <p className="text-sm text-text-secondary font-mono tracking-widest uppercase">
+                Civic Level
+              </p>
+              <p className="text-xl font-display font-bold text-accent-300 mt-1">
+                {reputation?.rankTitle || 'Citizen'}
+              </p>
+              <p className="text-xs text-text-tertiary mt-1">
+                {reputation?.points || 0} / {reputation?.nextLevelPoints || 10} XP
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* 2. Tabs */}
-      <div className="border-b border-white/10 flex gap-6 overflow-x-auto custom-scrollbar pb-1">
-        {TABS.map(tab => (
+      <div
+        className="border-b border-white/10 flex gap-6 overflow-x-auto custom-scrollbar pb-1"
+        role="tablist"
+        aria-label="Profile Sections"
+      >
+        {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}

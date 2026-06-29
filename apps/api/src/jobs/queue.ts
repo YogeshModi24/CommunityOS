@@ -36,7 +36,7 @@ class MockQueue {
     // Run worker logic in the background after 3 seconds
     setTimeout(async () => {
       try {
-        const { processJob } = await import('./aiWorker');
+        const { processJob } = await import('./aiWorker.js');
         await processJob(data);
       } catch (err: unknown) {
         logger.error('[MockQueue] Background execution failed', err, {

@@ -136,17 +136,17 @@ export async function assignIssue(
     if (!department) {
       throw new ValidationError('Department is required for assignment');
     }
-    
+
     // We import AssignIssueUseCase inside the function or at the top
-    const { AssignIssueUseCase } = await import('../use-cases/AssignIssueUseCase');
+    const { AssignIssueUseCase } = await import('../use-cases/AssignIssueUseCase.js');
     const assignUseCase = container.resolve<any>(AssignIssueUseCase);
-    
+
     const result = await assignUseCase.execute(
       req.params.id,
       { department, assignedToId, assignedToName, assignedToRole, dueDate },
       req.userId!
     );
-    
+
     if (result.isFailure) {
       throw new ValidationError(result.error);
     }

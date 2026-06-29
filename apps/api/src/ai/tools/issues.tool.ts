@@ -3,13 +3,13 @@ import { DynamicStructuredTool } from '@langchain/core/tools';
 
 import { container } from '../../infra/container';
 import { DashboardService } from '../../services/DashboardService';
-import { 
+import {
   AssignIssueSchema,
-  GetCriticalIssuesSchema, 
-  GetIssueByIdSchema, 
-  GetIssuesByCategorySchema, 
-  GetIssuesByDepartmentSchema, 
-  GetOpenIssuesSchema 
+  GetCriticalIssuesSchema,
+  GetIssueByIdSchema,
+  GetIssuesByCategorySchema,
+  GetIssuesByDepartmentSchema,
+  GetOpenIssuesSchema,
 } from '../schemas/toolSchemas';
 
 // Helper to format issues for the LLM concisely
@@ -21,7 +21,7 @@ const formatIssues = (issues: any[]) => {
     severity: i.severity,
     status: i.status,
     department: i.department,
-    ward: i.ward
+    ward: i.ward,
   }));
 };
 
@@ -63,7 +63,7 @@ export const getIssueByIdTool: any = new (DynamicStructuredTool as any)({
     try {
       const repo = RepositoryFactory.createIssueRepository({ engine: 'mongo' });
       const issue = await repo.findById(issueId);
-      if (!issue) return "Issue not found.";
+      if (!issue) return 'Issue not found.';
       return JSON.stringify({
         title: issue.title,
         description: issue.description,
@@ -107,7 +107,7 @@ export const getIssuesByDepartmentTool: any = new (DynamicStructuredTool as any)
       // Fetch open/pending issues by department
       const { issues } = await repo.findAll({ department }, { limit });
       // Filter out resolved just in case, or we can trust findAll
-      const unresolved = issues.filter(i => i.status !== 'resolved');
+      const unresolved = issues.filter((i) => i.status !== 'resolved');
       return JSON.stringify(formatIssues(unresolved));
     } catch (e: any) {
       return JSON.stringify({ error: `Failed to fetch issues by department: ${e.message}` });
@@ -117,13 +117,24 @@ export const getIssuesByDepartmentTool: any = new (DynamicStructuredTool as any)
 
 export const assignIssueTool: any = new (DynamicStructuredTool as any)({
   name: 'assignIssue',
-  description: 'Assigns a civic issue to a specific department or person, and optionally sets a due date.',
+  description:
+    'Assigns a civic issue to a specific department or person, and optionally sets a due date.',
   schema: AssignIssueSchema,
-  func: async ({ issueId, department, assignedToName, dueDate }: { issueId: string, department: string, assignedToName?: string, dueDate?: string }) => {
+  func: async ({
+    issueId,
+    department,
+    assignedToName,
+    dueDate,
+  }: {
+    issueId: string;
+    department: string;
+    assignedToName?: string;
+    dueDate?: string;
+  }) => {
     try {
-      const { AssignIssueUseCase } = await import('../../use-cases/AssignIssueUseCase');
+      const { AssignIssueUseCase } = await import('../../use-cases/AssignIssueUseCase.js');
       const assignUseCase = container.resolve<any>(AssignIssueUseCase);
-      
+
       const parsedDueDate = dueDate ? new Date(dueDate) : undefined;
       // Using 'ai-copilot' as the system actor ID
       const result = await assignUseCase.execute(
@@ -131,14 +142,17 @@ export const assignIssueTool: any = new (DynamicStructuredTool as any)({
         { department, assignedToName, dueDate: parsedDueDate },
         'ai-copilot'
       );
-      
+
       if (result.isFailure) {
         return JSON.stringify({ error: `Failed to assign issue: ${result.error}` });
       }
-      
-      return JSON.stringify({ success: true, message: `Issue ${issueId} successfully assigned to ${department}.` });
+
+      return JSON.stringify({
+        success: true,
+        message: `Issue ${issueId} successfully assigned to ${department}.`,
+      });
     } catch (e: any) {
       return JSON.stringify({ error: `Exception assigning issue: ${e.message}` });
     }
-  }
+  },
 });

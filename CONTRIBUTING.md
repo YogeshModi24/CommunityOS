@@ -49,3 +49,35 @@ npm run verify
 ```
 
 This performs a full formatting check, linting check, TypeScript compilation check, and builds all workspaces. All checks must pass with zero errors.
+
+---
+
+## 4. Branching Strategy & Repository Freeze
+
+CommunityOS v1.0.1+ is in **Maintenance Mode**. To preserve the stability of the production codebase while allowing for future experimentation, we follow this strict branching model:
+
+### `main`
+
+- **Purpose:** Stable production-ready code.
+- **Allowed:** Critical bug fixes, security patches, documentation updates, and release tags.
+- **Not Allowed:** Experimental features, large refactors, schema/architecture redesigns.
+- **Protection:** Requires a Pull Request, passing CI checks (build, typecheck, lint), and code review. **Never commit directly to `main`.**
+
+### `v1.0.x`
+
+- **Purpose:** Maintenance branch for the current production release.
+- **Allowed:** Hotfixes, production bugs, performance and accessibility improvements.
+- **Not Allowed:** New functionality or APIs.
+
+### `future`
+
+- **Purpose:** Research and experimentation (e.g., ML predictive analytics, mobile app integrations).
+- **Rules:** Breaking changes are acceptable here. Nothing from `future` merges into `main` until thoroughly tested and deliberately promoted as a major release.
+
+## 5. Maintenance Policy
+
+As a flagship portfolio project, our success criteria dictates:
+
+- **Prioritize stability** over new features.
+- Fix real bugs before adding functionality.
+- Maintain a clean Git history using Conventional Commits.

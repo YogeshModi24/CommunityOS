@@ -238,7 +238,7 @@ async function seed(): Promise<void> {
 
   for (const issueData of issues) {
     const createdAt = new Date(Date.now() - Math.random() * 86400000 * 14);
-    const { PriorityPolicy } = await import('./domain/policies/PriorityPolicy');
+    const { PriorityPolicy } = await import('./domain/policies/PriorityPolicy.js');
     const priority_score = PriorityPolicy.calculateScore({
       severity: issueData.severity,
       votes: issueData.votes,

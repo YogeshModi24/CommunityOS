@@ -28,21 +28,25 @@ CommunityOS is a comprehensive, open-source platform designed to bridge the gap 
 ## Features
 
 ### 🏛️ Citizen Experience
+
 - **Report Issues:** Submit infrastructure issues, potholes, or safety hazards with photos.
 - **Live Feed:** See a real-time stream of all reported issues in the community.
 - **Leaderboards:** Gamified civic engagement to encourage active community participation.
 
 ### 📊 Municipality Dashboard
+
 - **Mission Control:** High-level telemetry of the city's infrastructure health.
 - **Interactive Maps:** WebGL-powered clustered map visualization using Mapbox GL JS.
 - **Real-time Notifications:** WebSocket-powered live updates of incoming reports.
 
 ### 🤖 AI Intelligence Platform
+
 - **Automated Classification:** Uses OpenAI Vision to automatically categorize reports, assess severity, and detect hazards.
 - **Civic Copilot:** A conversational AI assistant equipped with LangChain tools for municipal officials and citizens.
 - **Proactive Insights:** Generates weekly summaries, predictive trend analyses, and calculates the City Health Score.
 
 ### ⚙️ Engineering & Architecture
+
 - **Event-Driven Core:** Fully decoupled architecture using an EventBus and standardized domain events (`packages/events`).
 - **Real-Time Sockets:** Socket.IO orchestrates instant live updates to clients when domain events occur.
 - **Turborepo:** High-performance build system for the monorepo architecture.
@@ -58,16 +62,16 @@ graph TD
   Browser -->|Next.js App Router| Next.js
   Next.js -->|REST API| Express[Express API]
   Next.js -->|WebSocket| SocketIO[Socket.IO Server]
-  
+
   Express -->|Emits Events| EventBus[EventBus Platform]
   SocketIO -->|Listens| EventBus
-  
+
   Express -->|Read/Write| MongoDB[(MongoDB)]
   Express -->|Image Uploads| Cloudinary[Cloudinary API]
-  
+
   Express -->|LangChain Tools| Copilot[AI Copilot & InsightService]
   Copilot -->|LLM & Vision| OpenAI[OpenAI API]
-  
+
   EventBus -.->|Queue Processing| Worker[Background Worker]
   Worker --> MongoDB
 ```
@@ -100,22 +104,27 @@ graph TD
 ## Quick Start
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/YogeshModi24/CommunityOS.git
 cd CommunityOS
 ```
 
 ### 2. Install dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Environment Variables
+
 Never expose secrets! Use the provided example files to set up your local environment:
+
 - `apps/api/.env.example` -> `apps/api/.env`
 - `apps/web/.env.local.example` -> `apps/web/.env.local`
 
 ### 4. Run Locally
+
 ```bash
 npm run dev
 ```
@@ -125,7 +134,9 @@ This will concurrently start the `web`, `api`, and `worker` applications using T
 ## Documentation
 
 For a deeper dive, read the comprehensive documentation:
-- [System Architecture](docs/architecture/system-overview.md)
+
+- [System Architecture](ARCHITECTURE.md)
+- [Future Roadmap](ROADMAP.md)
 - [API Reference](docs/api/api-overview.md)
 - [Deployment Guide](docs/guides/deployment.md)
 - [Contributing](CONTRIBUTING.md)

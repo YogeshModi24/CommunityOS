@@ -18,7 +18,6 @@ export const ServerSchema = SharedSchema.extend({
       const num = Number(val);
       return isNaN(num) ? val : num;
     }, z.number().int().min(1).max(65535))
-    .default(5001)
     .describe('Port number the Express API server listens on.'),
   MONGODB_URI: z
     .string({
@@ -56,19 +55,14 @@ export const ServerSchema = SharedSchema.extend({
     .describe('Secret key used to sign and verify JWT authentication tokens.'),
   CLIENT_URL: z
     .string()
-    .default('http://localhost:3000')
     .describe('Domain URL of the Next.js client web application (used for CORS mapping).'),
 });
 
 // 3. Client Schema (Next.js App)
 export const ClientSchema = SharedSchema.extend({
-  NEXT_PUBLIC_API_URL: z
-    .string()
-    .default('http://localhost:5001')
-    .describe('Public endpoint URL of the backend API server.'),
+  NEXT_PUBLIC_API_URL: z.string().describe('Public endpoint URL of the backend API server.'),
   NEXT_PUBLIC_SOCKET_URL: z
     .string()
-    .default('http://localhost:5001')
     .describe('Public endpoint URL of the WebSockets event socket server.'),
   NEXT_PUBLIC_MAPBOX_TOKEN: z
     .string()
@@ -90,10 +84,7 @@ export const ClientSchema = SharedSchema.extend({
     .string()
     .default('change_me_to_random_32_char_string')
     .describe('Alternative encryption secret for NextAuth/Auth.js credentials provider.'),
-  NEXTAUTH_URL: z
-    .string()
-    .default('http://localhost:3000')
-    .describe('Canonical base URL of the frontend web application.'),
+  NEXTAUTH_URL: z.string().describe('Canonical base URL of the frontend web application.'),
   AUTH_TRUST_HOST: z
     .preprocess((val) => {
       if (val === 'true' || val === true) return true;
