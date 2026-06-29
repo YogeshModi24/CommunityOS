@@ -1,8 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
-// Force NextAuth v5 to trust the host when deployed on Vercel
-process.env.AUTH_TRUST_HOST = 'true';
+// Removed manual process.env assignment to avoid Webpack Terser syntax error
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://communityos-0d4d.onrender.com';
 
