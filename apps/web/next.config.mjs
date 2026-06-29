@@ -7,6 +7,10 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
+  env: {
+    AUTH_TRUST_HOST: "true",
+    NEXTAUTH_URL: "https://community-os-web-seven.vercel.app"
+  },
 };
 
 export default nextConfig;
