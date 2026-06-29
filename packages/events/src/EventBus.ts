@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events';
-import { DomainEvent } from './events';
+
 import { LoggerFactory } from '@community-os/logger';
+
+import { DomainEvent } from './events';
 
 const logger = LoggerFactory.createLogger('console', 'events', process.env.NODE_ENV || 'development');
 
