@@ -33,8 +33,37 @@ function resolveAndValidate<T extends z.ZodRawShape>(
     throw new ConfigurationValidationError(details, context);
   }
 
+  const data = result.data as Record<string, any>;
+
+  if (data.NODE_ENV === 'production') {
+    const invalidMockKeys = [
+      'MONGODB_URI',
+      'REDIS_URL',
+      'JWT_SECRET',
+      'NEXTAUTH_SECRET',
+      'AUTH_SECRET',
+    ];
+    for (const key of invalidMockKeys) {
+      if (key in data) {
+        if (!data[key] || data[key] === 'mock' || data[key].includes('change_me')) {
+          throw new ConfigurationValidationError(
+            [
+              {
+                key,
+                expected: 'Valid production secret/URL',
+                received: data[key],
+                message: `${key} is required in production and cannot be a mock or default value.`,
+              },
+            ],
+            context
+          );
+        }
+      }
+    }
+  }
+
   // Freeze the configuration object to enforce immutability
-  return Object.freeze(result.data);
+  return Object.freeze(data);
 }
 
 export function validateServerEnv(resolver: SecretResolver = defaultResolver): ServerConfig {
