@@ -7,6 +7,11 @@ let isConnected = false;
 
 export async function connectDB(): Promise<void> {
   if (isConnected) return;
+  if (env.MONGODB_URI === 'mock') {
+    logger.warn('[DB] Running with MOCK DB. Database not actually connected.');
+    isConnected = true;
+    return;
+  }
 
   const MAX_RETRIES = 5;
   let attempt = 0;

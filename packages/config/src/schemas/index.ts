@@ -24,6 +24,7 @@ export const ServerSchema = SharedSchema.extend({
       required_error: 'MONGODB_URI is required for database connection.',
     })
     .min(1, 'MONGODB_URI cannot be empty.')
+    .default('mock')
     .describe('Required. MongoDB connection URI string.'),
   REDIS_URL: z
     .string()
@@ -55,6 +56,7 @@ export const ServerSchema = SharedSchema.extend({
     .describe('Secret key used to sign and verify JWT authentication tokens.'),
   CLIENT_URL: z
     .string()
+    .default('https://community-os-web-seven.vercel.app')
     .describe('Domain URL of the Next.js client web application (used for CORS mapping).'),
 });
 
