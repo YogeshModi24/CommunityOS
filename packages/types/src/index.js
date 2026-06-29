@@ -15,6 +15,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // CommunityOS types package entry point
+__exportStar(require("./ai"), exports);
 __exportStar(require("./contracts/request"), exports);
 __exportStar(require("./contracts/response"), exports);
 __exportStar(require("./domain/issue"), exports);

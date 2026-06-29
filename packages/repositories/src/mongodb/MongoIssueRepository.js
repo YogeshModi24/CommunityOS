@@ -125,6 +125,8 @@ class MongoIssueRepository {
             query.status = filter.status;
         if (filter.ward)
             query.ward = filter.ward;
+        if (filter.department)
+            query.department = filter.department;
         if (filter.severity)
             query.severity = Number(filter.severity);
         if (filter.reporterId)
@@ -220,6 +222,80 @@ class MongoIssueRepository {
     }
     async deleteAll() {
         await Issue_1.default.deleteMany({});
+    }
+    async getDashboardStats() {
+        const [totalStats, resolvedStats, openStats] = await Promise.all([
+            Issue_1.default.countDocuments(),
+            Issue_1.default.countDocuments({ status: 'resolved' }),
+            Issue_1.default.countDocuments({ status: { $in: ['open', 'verified', 'in_progress'] } }),
+        ]);
+        return {
+            totalIssues: totalStats,
+            resolvedIssues: resolvedStats,
+            openIssues: openStats,
+        };
+    }
+    async getDepartmentWorkload() {
+        const workload = await Issue_1.default.aggregate([
+            { $match: { status: { $ne: 'resolved' } } },
+            { $group: { _id: '$department', count: { $sum: 1 } } },
+        ]);
+        return workload.map((w) => ({
+            department: w._id || 'unassigned',
+            count: w.count,
+        }));
+    }
+    async getSlaOverview() {
+        const now = new Date();
+        const stats = await Issue_1.default.aggregate([
+            { $match: { status: { $ne: 'resolved' }, estimated_sla_days: { $exists: true } } },
+            {
+                $project: {
+                    sla_due_date: {
+                        $add: ['$createdAt', { $multiply: ['$estimated_sla_days', 24 * 60 * 60 * 1000] }],
+                    },
+                },
+            },
+            {
+                $project: {
+                    status: {
+                        $cond: {
+                            if: { $lt: ['$sla_due_date', now] },
+                            then: 'expired',
+                            else: 'active',
+                        },
+                    },
+                },
+            },
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+        ]);
+        let expired = 0;
+        let active = 0;
+        stats.forEach((s) => {
+            if (s._id === 'expired')
+                expired = s.count;
+            if (s._id === 'active')
+                active = s.count;
+        });
+        return { expired, active };
+    }
+    async getCategoryDistribution() {
+        const dist = await Issue_1.default.aggregate([
+            { $group: { _id: '$category', count: { $sum: 1 } } },
+        ]);
+        return dist.map((d) => ({
+            category: d._id || 'unknown',
+            count: d.count,
+        }));
+    }
+    async getCriticalIssueSummary() {
+        const docs = await Issue_1.default.find({ severity: { $gte: 4 }, status: { $ne: 'resolved' } })
+            .sort({ priority_score: -1 })
+            .limit(10)
+            .lean();
+        const issues = docs.map(mappers_1.mapMongoIssue);
+        const total = await Issue_1.default.countDocuments({ severity: { $gte: 4 }, status: { $ne: 'resolved' } });
+        return { total, issues };
     }
 }
 exports.MongoIssueRepository = MongoIssueRepository;

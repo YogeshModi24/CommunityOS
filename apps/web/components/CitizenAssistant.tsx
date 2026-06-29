@@ -1,101 +1,44 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, Send, X } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { Bot, RefreshCcw, Send, Square, Trash2, X } from 'lucide-react';
+import React, { useState } from 'react';
 
-
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { useAIChat } from '@/hooks/useAIChat';
+import { aiClient } from '@/lib/api/ai';
 
 export function CitizenAssistant() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hi! I am your Citizen Assistant. Do you need help reporting a civic issue?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const {
+    messages,
+    input,
+    setInput,
+    isLoading,
+    error,
+    messagesEndRef,
+    sendMessage,
+    retryLast,
+    stopGeneration,
+    clearConversation
+  } = useAIChat({
+    apiFn: aiClient.streamCitizenAssistant,
+    initialMessages: [
+      { role: 'assistant', content: 'Hi! I am your Citizen Assistant. Do you need help reporting a civic issue?' }
+    ]
+  });
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isOpen]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput('');
-    const newMessages = [...messages, { role: 'user', content: userMessage } as Message];
-    setMessages(newMessages);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/ai/assistant/citizen', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: newMessages }),
-      });
-
-      if (!response.ok) throw new Error('Network response was not ok');
-      if (!response.body) throw new Error('No readable stream available');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      // Add a placeholder assistant message to stream into
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') {
-                done = true;
-                break;
-              }
-              try {
-                const parsed = JSON.parse(data);
-                setMessages((prev) => {
-                  const lastMessage = prev[prev.length - 1];
-                  return [
-                    ...prev.slice(0, -1),
-                    { ...lastMessage, content: lastMessage.content + parsed },
-                  ];
-                });
-              } catch (e: any) {
-                // Ignore parse errors for partial chunks
-              }
-            }
-          }
-        }
-      }
-    } catch {
-      // Handle abort silently
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again later.' },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   return (
@@ -107,7 +50,7 @@ export function CitizenAssistant() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 w-[350px] origin-bottom-right sm:w-[400px]"
+            className="mb-4 w-[350px] origin-bottom-right sm:w-[450px]"
           >
             <div className="flex h-[500px] flex-col overflow-hidden border border-border/50 bg-layer1 rounded-xl shadow-2xl">
               {/* Header */}
@@ -121,9 +64,18 @@ export function CitizenAssistant() {
                     <p className="text-xs text-muted-foreground">AI Support Agent</p>
                   </div>
                 </div>
-                <button className="h-8 w-8 text-text-muted hover:text-white flex items-center justify-center rounded-md hover:bg-layer2" onClick={() => setIsOpen(false)}>
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={clearConversation}
+                    className="h-8 w-8 text-text-muted hover:text-white flex items-center justify-center rounded-md hover:bg-layer2" 
+                    title="Clear Chat"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <button className="h-8 w-8 text-text-muted hover:text-white flex items-center justify-center rounded-md hover:bg-layer2" onClick={() => setIsOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Messages */}
@@ -135,17 +87,29 @@ export function CitizenAssistant() {
                       className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
+                        className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
                           msg.role === 'user'
                             ? 'bg-primary text-primary-foreground rounded-tr-sm'
                             : 'bg-muted rounded-tl-sm'
                         }`}
+                        onClick={() => msg.role === 'assistant' && copyToClipboard(msg.content)}
+                        title={msg.role === 'assistant' ? "Click to copy" : undefined}
                       >
                         {msg.content}
                       </div>
                     </div>
                   ))}
-                  {isLoading && messages[messages.length - 1].role === 'user' && (
+                  {error && (
+                    <div className="flex justify-center flex-col items-center gap-2 my-2">
+                      <div className="text-xs text-red-400 bg-red-400/10 px-3 py-2 rounded-md">
+                        {error}
+                      </div>
+                      <button onClick={retryLast} className="flex items-center gap-1 text-xs text-text-secondary hover:text-white transition-colors">
+                        <RefreshCcw className="w-3 h-3" /> Retry
+                      </button>
+                    </div>
+                  )}
+                  {isLoading && messages[messages.length - 1]?.role === 'user' && (
                     <div className="flex justify-start">
                       <div className="flex gap-1 rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
                         <div className="h-2 w-2 animate-bounce rounded-full bg-foreground/40" />
@@ -160,23 +124,35 @@ export function CitizenAssistant() {
 
               {/* Input */}
               <div className="border-t border-border/50 bg-muted/10 p-3">
-                <form onSubmit={handleSubmit} className="flex items-center gap-2">
-                  <input
-                    type="text"
+                <div className="flex items-center gap-2">
+                  <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Ask a question..."
-                    className="flex-1 rounded-full border border-border/50 bg-background px-4 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+                    className="flex-1 resize-none rounded-2xl border border-border/50 bg-background px-4 py-2 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 min-h-[40px] max-h-[120px]"
+                    rows={1}
                     disabled={isLoading}
                   />
-                  <button
-                    type="submit"
-                    className="h-9 w-9 flex items-center justify-center shrink-0 rounded-full bg-citizen text-white hover:bg-citizen/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!input.trim() || isLoading}
-                  >
-                    <Send className="h-4 w-4" />
-                  </button>
-                </form>
+                  {isLoading ? (
+                    <button
+                      type="button"
+                      onClick={stopGeneration}
+                      className="h-9 w-9 flex items-center justify-center shrink-0 rounded-full bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors"
+                    >
+                      <Square className="h-4 w-4 fill-current" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => sendMessage()}
+                      className="h-9 w-9 flex items-center justify-center shrink-0 rounded-full bg-citizen text-white hover:bg-citizen/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      disabled={!input.trim()}
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
               </div>
           </motion.div>

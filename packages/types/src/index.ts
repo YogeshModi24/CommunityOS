@@ -1,4 +1,5 @@
 // CommunityOS types package entry point
+export * from './ai';
 export * from './contracts/request';
 export * from './contracts/response';
 export * from './domain/issue';

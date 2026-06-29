@@ -70,7 +70,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 px-4">
         
         {/* Main Content Column */}
-        <div className="xl:col-span-3 space-y-8 pb-20 lg:pb-12">
+        <div className={user?.role === 'admin' || user?.role === 'municipality' ? "xl:col-span-3 space-y-8 pb-20 lg:pb-12" : "xl:col-span-4 space-y-8 pb-20 lg:pb-12"}>
           {/* 1. Mission Control Hero */}
           <DashboardHero user={user} xp={xp} level={level} />
 
@@ -145,11 +145,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Persistent Right Panel for Copilot */}
-        <div className="xl:col-span-1">
-          <div className="sticky top-24">
-            <MunicipalityCopilot />
+        {(user?.role === 'admin' || user?.role === 'municipality') && (
+          <div className="xl:col-span-1">
+            <div className="sticky top-24">
+              <MunicipalityCopilot />
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
     </div>
