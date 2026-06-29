@@ -53,7 +53,9 @@ async function checkRedis() {
   if ((healthRedisClient.status as string) === 'ready') return true;
   if (!isRedisConnecting) {
     isRedisConnecting = true;
-    try { await healthRedisClient.connect(); } catch {
+    try {
+      await healthRedisClient.connect();
+    } catch {
       // ignore
     }
   }
@@ -129,7 +131,11 @@ async function main(): Promise<void> {
         return next(new Error('Authentication error: Token missing'));
       }
 
-      const decoded = jwt.verify(token, env.JWT_SECRET) as { sub: string; role: string; department?: string };
+      const decoded = jwt.verify(token, env.JWT_SECRET) as {
+        sub: string;
+        role: string;
+        department?: string;
+      };
       socket.data.user = { id: decoded.sub, role: decoded.role, department: decoded.department };
       next();
     } catch {
@@ -139,11 +145,14 @@ async function main(): Promise<void> {
 
   io.on('connection', (socket) => {
     const user = socket.data.user;
-    logger.info(`[Socket.io] Client connected: ${socket.id} (User: ${user.id}, Role: ${user.role})`, { event: 'socket_connected' });
+    logger.info(
+      `[Socket.io] Client connected: ${socket.id} (User: ${user.id}, Role: ${user.role})`,
+      { event: 'socket_connected' }
+    );
 
     // Join Role-based Rooms
     socket.join(`User:${user.id}`);
-    
+
     if (user.role === 'citizen') {
       socket.join('Citizens');
     } else if (user.role === 'municipality' || user.role === 'authority' || user.role === 'admin') {
@@ -164,7 +173,7 @@ async function main(): Promise<void> {
   const eventBus = container.resolve<any>('eventBus');
   registerEventHandlers(eventBus, io, container);
 
-  httpServer.listen(env.PORT, () => {
+  httpServer.listen(env.PORT as number, '0.0.0.0', () => {
     logger.info(`[Server] Running on port ${env.PORT}`, {
       event: 'server_started',
       port: env.PORT,
