@@ -12,7 +12,10 @@
   },
   "scripts": {
     "build": "tsc --build",
+    "typecheck": "tsc --noEmit",
     "clean": "tsc --build --clean && rm -rf dist tsconfig.tsbuildinfo",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
     "dev": "tsc --watch"
   },
   "dependencies": {
