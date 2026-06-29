@@ -2,9 +2,13 @@
   "extends": "../typescript-config/base.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["node", "vitest"]
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/__tests__"
   ]
 }
