@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CompactIssueCard } from '@/components/feed/CompactIssueCard';
 import { OSStateView } from '@/components/layout/OSStateView';
 import { SpotlightCard } from '@/components/layout/SpotlightCard';
+import { useSocket } from '@/hooks/useSocket';
 import { api } from '@/lib/api';
 
 const CATEGORIES = [
@@ -31,24 +32,89 @@ export default function FeedPage() {
   // Read category from URL, default to 'all'
   const filterCat = searchParams.get('category') || 'all';
 
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-    const params = new URLSearchParams();
-    if (filterCat !== 'all') params.append('category', filterCat);
-    params.append('limit', '50');
-
-    api
-      .get(`/api/issues?${params.toString()}`)
-      .then((res) => {
-        setIssues(res.data.data.issues || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to load issues', err);
-        setError(true);
-        setLoading(false);
+  useSocket({
+    'issue.created.v1': (payload: any) => {
+      if (filterCat !== 'all' && payload.category !== filterCat) return;
+      setIssues((prev) => {
+        const newIssue = {
+          _id: payload.issueId,
+          id: payload.issueId,
+          title: payload.title,
+          status: 'pending',
+          category: payload.category,
+          severity: 0,
+          ai_confidence: 0,
+          address: payload.location?.coordinates?.join(', ') || 'Unknown Location',
+          votes: 1,
+          createdAt: payload.createdAt || new Date().toISOString(),
+        };
+        return [newIssue, ...prev];
       });
+    },
+    'issue.updated.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, category: payload.category || issue.category, severity: payload.severity || issue.severity }
+            : issue
+        )
+      );
+    },
+    'issue.resolved.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, status: 'resolved' }
+            : issue
+        )
+      );
+    },
+    'vote.added.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, votes: payload.newVoteCount }
+            : issue
+        )
+      );
+    },
+    'vote.removed.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, votes: payload.newVoteCount }
+            : issue
+        )
+      );
+    },
+  });
+
+  useEffect(() => {
+    const fetchFeed = () => {
+      setLoading(true);
+      setError(false);
+      const params = new URLSearchParams();
+      if (filterCat !== 'all') params.append('category', filterCat);
+      params.append('limit', '50');
+
+      api
+        .get(`/api/issues?${params.toString()}`)
+        .then((res) => {
+          setIssues(res.data.data.issues || []);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Failed to load issues', err);
+          setError(true);
+          setLoading(false);
+        });
+    };
+
+    fetchFeed();
+
+    const handleResync = () => fetchFeed();
+    window.addEventListener('socket:resync', handleResync);
+    return () => window.removeEventListener('socket:resync', handleResync);
   }, [filterCat]);
 
   const handleCategoryChange = (cat: string) => {
@@ -136,6 +202,8 @@ export default function FeedPage() {
               <button
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
+                aria-label={`Filter by ${cat.replace('_', ' ')}`}
+                aria-pressed={filterCat === cat}
                 className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
                   filterCat === cat
                     ? 'bg-white text-bg shadow-[0_0_20px_rgba(255,255,255,0.3)]'

@@ -1,6 +1,5 @@
-import { IssueAnalyzed, IssuePriorityUpdated } from '@community-os/types';
+import { DomainEvent, IssueAnalyzedV1Payload, IssuePriorityUpdatedV1Payload } from '@community-os/events';
 import { Result } from '@community-os/utils';
-import crypto from 'crypto';
 
 import { PriorityPolicy } from '../domain/policies/PriorityPolicy';
 import { RewardPolicy } from '../domain/policies/RewardPolicy';
@@ -87,11 +86,9 @@ export class AnalyzeIssueUseCase {
       await this.userService.incrementPointsAndIssues(reporterId, rewardPoints, 1);
 
       // 8. Publish Domain Events
-      const analyzedEvent: IssueAnalyzed = {
-        eventId: crypto.randomUUID(),
+      const analyzedEvent: DomainEvent<IssueAnalyzedV1Payload> = {
+        type: 'IssueAnalyzed',
         occurredAt: new Date(),
-        aggregateId: issueId,
-        name: 'IssueAnalyzed',
         payload: {
           issueId,
           category: analysis.category,
@@ -100,19 +97,14 @@ export class AnalyzeIssueUseCase {
           confidence: analysis.confidence,
           department: analysis.department,
           estimated_sla_days: analysis.estimated_sla_days,
-          aiVersion: analysis.aiVersion,
-          modelName: analysis.modelName,
-          promptVersion: analysis.promptVersion,
-          processedAt: new Date(),
+          analysisProcessedAt: new Date(),
         },
       };
       this.eventBus.publish(analyzedEvent);
 
-      const priorityEvent: IssuePriorityUpdated = {
-        eventId: crypto.randomUUID(),
+      const priorityEvent: DomainEvent<IssuePriorityUpdatedV1Payload> = {
+        type: 'IssuePriorityUpdated',
         occurredAt: new Date(),
-        aggregateId: issueId,
-        name: 'IssuePriorityUpdated',
         payload: {
           issueId,
           priorityScore,

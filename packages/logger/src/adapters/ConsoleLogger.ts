@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { getLogContext } from '../context';
 import { ILogger } from '../interfaces/ILogger';
 

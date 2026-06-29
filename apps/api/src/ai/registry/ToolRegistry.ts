@@ -1,6 +1,14 @@
 import { getDashboardStatsTool, getSlaOverviewTool } from '../tools/dashboard.tool';
 import { getDepartmentWorkloadTool } from '../tools/departments.tool';
 import {
+  getCitizenInsightsTool,
+  getCityHealthScoreTool,
+  getDepartmentInsightsTool,
+  getExecutiveSummaryTool,
+  getTrendAnalysisTool,
+} from '../tools/insights.tool';
+import {
+  assignIssueTool,
   getCriticalIssuesTool,
   getIssueByIdTool,
   getIssuesByCategoryTool,
@@ -18,5 +26,11 @@ export const ToolRegistry: any[] = [
   getIssuesByCategoryTool,
   getIssuesByDepartmentTool,
   getOpenIssuesTool,
+  assignIssueTool,
   getLeaderboardTool,
+  getCitizenInsightsTool,
+  getCityHealthScoreTool,
+  getDepartmentInsightsTool,
+  getExecutiveSummaryTool,
+  getTrendAnalysisTool,
 ];

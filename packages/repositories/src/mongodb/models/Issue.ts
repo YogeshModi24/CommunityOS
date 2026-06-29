@@ -44,6 +44,16 @@ export interface IIssue extends Document {
     promptVersion: string;
     processedAt: Date;
   };
+  assignment?: {
+    department?: string;
+    assignedToId?: Types.ObjectId;
+    assignedToName?: string;
+    assignedToRole?: string;
+    assignedAt: Date;
+    assignedById: Types.ObjectId;
+    dueDate?: Date;
+    status: 'assigned' | 'acknowledged' | 'in_progress';
+  };
   votes: number;
   voter_ids: Types.ObjectId[];
   reporter_id: Types.ObjectId;
@@ -107,6 +117,19 @@ const IssueSchema = new Schema<IIssue>(
       modelName: String,
       promptVersion: String,
       processedAt: Date,
+    },
+    assignment: {
+      department: String,
+      assignedToId: { type: Schema.Types.ObjectId, ref: 'User' },
+      assignedToName: String,
+      assignedToRole: String,
+      assignedAt: Date,
+      assignedById: { type: Schema.Types.ObjectId, ref: 'User' },
+      dueDate: Date,
+      status: {
+        type: String,
+        enum: ['assigned', 'acknowledged', 'in_progress'],
+      },
     },
     votes: { type: Number, default: 0 },
     voter_ids: [{ type: Schema.Types.ObjectId, ref: 'User' }],

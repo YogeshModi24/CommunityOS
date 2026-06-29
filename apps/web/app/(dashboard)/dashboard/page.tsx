@@ -13,6 +13,7 @@ import { MunicipalityCopilot } from '@/components/dashboard/MunicipalityCopilot'
 import { QuickActionCard } from '@/components/dashboard/QuickActionCard';
 import { TelemetryPanel } from '@/components/dashboard/TelemetryPanel';
 import { OSStateView } from '@/components/layout/OSStateView';
+import { useSocket } from '@/hooks/useSocket';
 import { api } from '@/lib/api';
 
 export default function DashboardPage() {
@@ -41,9 +42,97 @@ export default function DashboardPage() {
       });
   };
 
+  useSocket({
+    'issue.created.v1': (payload: any) => {
+      setDashboardData((prev: any) => {
+        if (!prev) return prev;
+        const newIssue = {
+          id: payload.issueId,
+          title: payload.title,
+          status: 'pending',
+          category: payload.category,
+          severity: 0, // AI hasn't analyzed yet
+          address: payload.location?.coordinates?.join(', ') || 'Unknown Location',
+          votes: 1,
+          createdAt: payload.createdAt || new Date().toISOString(),
+        };
+        
+        return {
+          ...prev,
+          totalReports: prev.totalReports + 1,
+          pendingReports: prev.pendingReports + 1,
+          recentActivity: [newIssue, ...prev.recentActivity].slice(0, 5),
+        };
+      });
+      setLastSync(new Date());
+    },
+    'issue.updated.v1': (payload: any) => {
+      setDashboardData((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          recentActivity: prev.recentActivity.map((issue: any) => 
+            issue.id === payload.issueId 
+              ? { ...issue, category: payload.category || issue.category, severity: payload.severity || issue.severity } 
+              : issue
+          ),
+        };
+      });
+      setLastSync(new Date());
+    },
+    'issue.resolved.v1': (payload: any) => {
+      setDashboardData((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resolvedReports: prev.resolvedReports + 1,
+          pendingReports: Math.max(0, prev.pendingReports - 1),
+          recentActivity: prev.recentActivity.map((issue: any) => 
+            issue.id === payload.issueId 
+              ? { ...issue, status: 'resolved' } 
+              : issue
+          ),
+        };
+      });
+      setLastSync(new Date());
+    },
+    'vote.added.v1': (payload: any) => {
+      setDashboardData((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          recentActivity: prev.recentActivity.map((issue: any) => 
+            issue.id === payload.issueId 
+              ? { ...issue, votes: payload.newVoteCount } 
+              : issue
+          ),
+        };
+      });
+      setLastSync(new Date());
+    },
+    'vote.removed.v1': (payload: any) => {
+      setDashboardData((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          recentActivity: prev.recentActivity.map((issue: any) => 
+            issue.id === payload.issueId 
+              ? { ...issue, votes: payload.newVoteCount } 
+              : issue
+          ),
+        };
+      });
+      setLastSync(new Date());
+    },
+  });
+
   useEffect(() => {
     setMounted(true);
     fetchDashboard();
+
+    const handleResync = () => fetchDashboard();
+    window.addEventListener('socket:resync', handleResync);
+    return () => window.removeEventListener('socket:resync', handleResync);
   }, []);
 
   if (!mounted) return null;

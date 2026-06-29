@@ -269,6 +269,48 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
               </div>
             )}
 
+            {/* Assignment Block */}
+            {issue.assignment && (
+              <div className="bg-layer1 p-8 rounded-[32px] border border-municipality/30 shadow-[0_0_40px_rgba(37,99,235,0.1)] relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-municipality/10 to-transparent pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6 text-municipality">
+                    <span className="material-symbols-outlined text-[24px]">assignment_ind</span>
+                    <h3 className="font-bold text-sm tracking-widest uppercase">
+                      Dispatch & Assignment
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-layer2 p-4 rounded-xl border border-border">
+                      <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">Assigned Department</div>
+                      <div className="text-white font-mono font-bold capitalize">{issue.assignment.department.replace(/_/g, ' ')}</div>
+                    </div>
+                    
+                    {issue.assignment.assignedToName && (
+                      <div className="bg-layer2 p-4 rounded-xl border border-border">
+                        <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">Assigned Personnel</div>
+                        <div className="text-white font-bold flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[16px] text-text-secondary">badge</span>
+                          {issue.assignment.assignedToName}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {issue.assignment.dueDate && (
+                      <div className="bg-layer2 p-4 rounded-xl border border-border">
+                        <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">Target SLA / Due Date</div>
+                        <div className="text-warning font-mono font-bold flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[16px]">timer</span>
+                          {new Date(issue.assignment.dueDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Reporter Meta */}
             <div className="bg-layer1 p-8 rounded-[32px] border border-border shadow-lg">
               <h3 className="font-bold text-xs mb-6 text-text-tertiary uppercase tracking-widest flex items-center gap-2">

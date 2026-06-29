@@ -3,16 +3,24 @@ import { User } from '@community-os/types';
 import { Result } from '@community-os/utils';
 
 import { logger } from '../lib/logger';
+import { IReputationService } from './contracts/IReputationService';
 import { IUserService } from './contracts/IUserService';
 
 export class UserService implements IUserService {
-  constructor(private userRepository: IUserRepository) {}
+  constructor(
+    private userRepository: IUserRepository,
+    private reputationService: IReputationService
+  ) {}
 
   async getMe(userId: string): Promise<Result<User, string>> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       return Result.fail('User not found');
     }
+    
+    // Attach computed reputation
+    user.reputation = this.reputationService.calculateMetrics(user.points || 0);
+    
     return Result.ok(user);
   }
 
@@ -47,6 +55,9 @@ export class UserService implements IUserService {
       return Result.fail('User not found');
     }
 
+    // Attach computed reputation
+    data.reputation = this.reputationService.calculateMetrics(data.points || 0);
+
     const duration = Date.now() - startTime;
     if (duration > 300) {
       logger.warn(`[UserService] Dashboard API performance target exceeded: ${duration}ms`, {
@@ -57,5 +68,17 @@ export class UserService implements IUserService {
     }
 
     return Result.ok(data);
+  }
+
+  async saveLocation(
+    userId: string,
+    location: Omit<User['savedLocations'][0], 'id'>
+  ): Promise<Result<User, string>> {
+    const updatedUser = await this.userRepository.saveLocation(userId, location);
+    if (!updatedUser) {
+      return Result.fail('User not found');
+    }
+    updatedUser.reputation = this.reputationService.calculateMetrics(updatedUser.points || 0);
+    return Result.ok(updatedUser);
   }
 }

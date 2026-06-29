@@ -1,5 +1,6 @@
 import { loadEnvFiles, validateServerEnv } from '@community-os/config';
 import { LoggerFactory } from '@community-os/logger';
+/* eslint-disable no-console */
 import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 import mongoose from 'mongoose';

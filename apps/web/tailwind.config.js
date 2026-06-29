@@ -23,6 +23,7 @@ module.exports = {
 
         // Semantic Colors
         citizen: '#2563EB', // Blue
+        municipality: '#2563EB', // Blue
         ai: '#7C3AED', // Purple
         resolved: '#10B981', // Emerald
         warning: '#F59E0B', // Amber

@@ -7,6 +7,7 @@ import { NextFunction, Request, Response } from 'express';
 import { container } from '../infra/container';
 import { AuthRequest } from '../middleware/auth';
 import { IUserService } from '../services/contracts/IUserService';
+import { GetCitizenInsightsUseCase } from '../use-cases/GetCitizenInsightsUseCase';
 import { GetDashboardDataUseCase } from '../use-cases/GetDashboardDataUseCase';
 import { LoginUserUseCase } from '../use-cases/LoginUserUseCase';
 import { LogoutUserUseCase } from '../use-cases/LogoutUserUseCase';
@@ -174,6 +175,52 @@ export async function getDashboard(
       throw new ValidationError('User context missing');
     }
     const useCase = container.resolve<GetDashboardDataUseCase>(GetDashboardDataUseCase);
+    const result = await useCase.execute(req.userId);
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PATCH /api/users/locations
+export async function saveLocation(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.userId) {
+      throw new ValidationError('User context missing');
+    }
+    const { type, address, coordinates } = req.body;
+    if (!type || !address || !coordinates) {
+      throw new ValidationError('Type, address, and coordinates are required');
+    }
+    const userService = container.resolve<IUserService>('userService');
+    const result = await userService.saveLocation(req.userId, { type, address, coordinates });
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/users/me/insights
+export async function getCitizenInsights(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.userId) {
+      throw new ValidationError('User context missing');
+    }
+    const useCase = container.resolve<GetCitizenInsightsUseCase>(GetCitizenInsightsUseCase);
     const result = await useCase.execute(req.userId);
     if (result.isFailure) {
       throw new ValidationError(result.error);

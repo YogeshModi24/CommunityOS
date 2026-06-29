@@ -2,6 +2,7 @@
   "extends": "../../packages/typescript-config/node.json",
   "compilerOptions": {
     "rootDir": "./src",
+    "outDir": "./dist",
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {

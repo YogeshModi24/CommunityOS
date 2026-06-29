@@ -1,7 +1,7 @@
+import { DomainEvent, IssueCreatedV1Payload } from '@community-os/events';
 import { getLogContext } from '@community-os/logger';
-import { CreateIssueDTO, Issue, IssueCreated } from '@community-os/types';
+import { CreateIssueDTO, Issue } from '@community-os/types';
 import { Result } from '@community-os/utils';
-import crypto from 'crypto';
 
 import { aiQueue } from '../jobs/queue';
 import { logger } from '../lib/logger';
@@ -34,15 +34,17 @@ export class ReportIssueUseCase {
     const issue = result.value;
 
     // 2. Publish Domain Event
-    const event: IssueCreated = {
-      eventId: crypto.randomUUID(),
+    const event: DomainEvent<IssueCreatedV1Payload> = {
+      type: 'IssueCreated',
       occurredAt: new Date(),
-      aggregateId: issue.id,
-      name: 'IssueCreated',
       payload: {
         issueId: issue.id,
         reporterId: userId,
         category: issue.category,
+        title: issue.title,
+        ward: issue.ward,
+        location: issue.location as { type: 'Point'; coordinates: [number, number] },
+        createdAt: issue.createdAt || new Date(),
       },
     };
     this.eventBus.publish(event);

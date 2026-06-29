@@ -1,13 +1,10 @@
+import { DomainEvent, NotificationCreatedV1Payload, NotificationDeletedV1Payload,NotificationReadV1Payload } from '@community-os/events';
 import { IMetrics } from '@community-os/logger';
 import { INotificationRepository } from '@community-os/repositories';
 import {
   Notification,
-  NotificationCreated,
-  NotificationDeleted,
-  NotificationRead,
 } from '@community-os/types';
 import { Result } from '@community-os/utils';
-import crypto from 'crypto';
 
 import { logger } from '../lib/logger';
 import { IEventBus } from './contracts/IEventBus';
@@ -51,12 +48,9 @@ export class NotificationService implements INotificationService {
         }
       );
 
-      // Publish event
-      const event: NotificationCreated = {
-        eventId: crypto.randomUUID(),
+      const event: DomainEvent<NotificationCreatedV1Payload> = {
+        type: 'NotificationCreated',
         occurredAt: new Date(),
-        aggregateId: notification.id,
-        name: 'NotificationCreated',
         payload: {
           notificationId: notification.id,
           userId,
@@ -106,11 +100,9 @@ export class NotificationService implements INotificationService {
       userId,
     });
 
-    const event: NotificationRead = {
-      eventId: crypto.randomUUID(),
+    const event: DomainEvent<NotificationReadV1Payload> = {
+      type: 'NotificationRead',
       occurredAt: new Date(),
-      aggregateId: id,
-      name: 'NotificationRead',
       payload: {
         notificationId: id,
         userId,
@@ -175,11 +167,9 @@ export class NotificationService implements INotificationService {
       userId,
     });
 
-    const event: NotificationDeleted = {
-      eventId: crypto.randomUUID(),
+    const event: DomainEvent<NotificationDeletedV1Payload> = {
+      type: 'NotificationDeleted',
       occurredAt: new Date(),
-      aggregateId: id,
-      name: 'NotificationDeleted',
       payload: {
         notificationId: id,
         userId,

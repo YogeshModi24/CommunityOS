@@ -49,3 +49,14 @@ export interface LoginResponseDTO {
     issues_reported: number;
   };
 }
+
+export enum AuthEventType {
+  LoginSuccess = 'login_success',
+  LoginFailed = 'login_failed',
+  Logout = 'logout',
+  SessionCreated = 'session_created',
+  SessionRevoked = 'session_revoked',
+  RefreshSuccess = 'refresh_success',
+  RefreshFailed = 'refresh_failed',
+  RBACDenied = 'rbac_denied',
+}

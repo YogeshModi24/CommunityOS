@@ -11,6 +11,16 @@ export function mapMongoUser(doc: any): User {
     ward: doc.ward,
     points: doc.points ?? 0,
     issues_reported: doc.issues_reported ?? 0,
+    achievements: (doc.achievements || []).map((a: any) => ({
+      id: a.id,
+      unlockedAt: a.unlockedAt,
+      progress: a.progress,
+    })),
+    savedLocations: (doc.savedLocations || []).map((l: any) => ({
+      type: l.type,
+      address: l.address,
+      coordinates: [l.coordinates[0], l.coordinates[1]],
+    })),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };

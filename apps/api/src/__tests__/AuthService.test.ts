@@ -81,6 +81,8 @@ describe('AuthService', () => {
         issues_reported: 0,
         createdAt: mockNow,
         updatedAt: mockNow,
+        achievements: [],
+        savedLocations: [],
       };
 
       const mockSession: UserSession = {
@@ -130,6 +132,8 @@ describe('AuthService', () => {
         issues_reported: 0,
         createdAt: mockNow,
         updatedAt: mockNow,
+        achievements: [],
+        savedLocations: [],
       };
 
       mockUserRepo.findByEmailWithPassword.mockResolvedValue(mockUser);
@@ -179,6 +183,8 @@ describe('AuthService', () => {
         issues_reported: 0,
         createdAt: mockNow,
         updatedAt: mockNow,
+        achievements: [],
+        savedLocations: [],
       };
 
       mockSessionRepo.findSessionByHash.mockResolvedValue(mockSession);

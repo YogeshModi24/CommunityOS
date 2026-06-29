@@ -147,6 +147,14 @@ export class IssueService implements IIssueService {
     return Result.ok(issue);
   }
 
+  async assignIssue(id: string, assignment: any): Promise<Result<Issue, string>> {
+    const updated = await this.issueRepository.update(id, { assignment });
+    if (!updated) {
+      return Result.fail('Issue not found');
+    }
+    return Result.ok(updated);
+  }
+
   async updateIssueAIResults(
     id: string,
     analysis: {

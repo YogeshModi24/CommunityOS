@@ -4,58 +4,19 @@
 import { formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
-import { api } from '@/lib/api';
+import { useNotifications } from '@/providers/NotificationProvider';
 
 import { OSStateView } from './layout/OSStateView';
 
 export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { state: { notifications, loading }, markAsRead, markAllAsRead } = useNotifications();
   const router = useRouter();
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
-  }, [isOpen]);
-
-  const fetchNotifications = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/api/notifications');
-      setNotifications(res.data.data || []);
-    } catch (err) {
-      console.warn('Failed to fetch notifications', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markAllRead = async () => {
-    try {
-      await api.post('/api/notifications/read-all');
-      setNotifications(notifications.map((n) => ({ ...n, read: true })));
-    } catch (err) {
-      console.warn('Failed to mark all as read', err);
-    }
-  };
 
   const handleNotificationClick = async (n: any) => {
     if (!n.read) {
-      try {
-        await api.patch(`/api/notifications/${n.id || n._id}/read`);
-        setNotifications(
-          notifications.map((notif) =>
-            notif.id === n.id || notif._id === n._id ? { ...notif, read: true } : notif
-          )
-        );
-      } catch (err) {
-        console.warn('Failed to mark as read', err);
-      }
+      await markAsRead(n.id || n._id);
     }
-
     // Deep link routing based on notification type
     if (n.issueId) {
       router.push(`/issue/${n.issueId}`);
@@ -201,7 +162,7 @@ export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClo
               <div className="flex items-center gap-2">
                 {notifications.some((n) => !n.read) && (
                   <button
-                    onClick={markAllRead}
+                    onClick={() => markAllAsRead()}
                     className="w-8 h-8 rounded-full bg-layer2 hover:bg-citizen/20 hover:text-citizen border border-border text-text-tertiary flex items-center justify-center transition-colors"
                     title="Mark all read"
                   >

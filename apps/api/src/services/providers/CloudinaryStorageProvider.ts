@@ -47,7 +47,7 @@ export class CloudinaryStorageProvider implements IStorageProvider {
   async upload(
     fileBuffer: Buffer,
     originalName: string,
-    mimeType: string
+    _mimeType: string
   ): Promise<StorageUploadResult> {
     // If credentials are mock, return a local simulated fallback immediately
     if (
@@ -140,7 +140,7 @@ export class CloudinaryStorageProvider implements IStorageProvider {
     }
     const performDelete = (): Promise<void> => {
       return new Promise((resolve, reject) => {
-        cloudinary.uploader.destroy(publicId, (error, result) => {
+        cloudinary.uploader.destroy(publicId, (error, _result) => {
           if (error) return reject(error);
           resolve();
         });

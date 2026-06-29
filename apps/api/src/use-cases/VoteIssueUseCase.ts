@@ -1,11 +1,6 @@
-import {
-  IssuePriorityUpdated,
-  ToggleVoteResponseDTO,
-  VoteAdded,
-  VoteRemoved,
-} from '@community-os/types';
+import { DomainEvent, IssuePriorityUpdatedV1Payload,VoteAddedV1Payload, VoteRemovedV1Payload } from '@community-os/events';
+import { ToggleVoteResponseDTO } from '@community-os/types';
 import { Result } from '@community-os/utils';
-import crypto from 'crypto';
 
 import { IEventBus } from '../services/contracts/IEventBus';
 import { IVoteService } from '../services/contracts/IVoteService';
@@ -26,36 +21,34 @@ export class VoteIssueUseCase {
 
     // Directives 3: Services return events; Use Cases publish them
     if (payload.hasVoted) {
-      const voteEvent: VoteAdded = {
-        eventId: crypto.randomUUID(),
+      const voteEvent: DomainEvent<VoteAddedV1Payload> = {
+        type: 'VoteAdded',
         occurredAt: new Date(),
-        aggregateId: issueId,
-        name: 'VoteAdded',
         payload: {
           issueId,
-          userId,
+          voterId: userId,
+          newVoteCount: payload.votes,
+          newPriorityScore: payload.priority_score,
         },
       };
       this.eventBus.publish(voteEvent);
     } else {
-      const voteEvent: VoteRemoved = {
-        eventId: crypto.randomUUID(),
+      const voteEvent: DomainEvent<VoteRemovedV1Payload> = {
+        type: 'VoteRemoved',
         occurredAt: new Date(),
-        aggregateId: issueId,
-        name: 'VoteRemoved',
         payload: {
           issueId,
-          userId,
+          voterId: userId,
+          newVoteCount: payload.votes,
+          newPriorityScore: payload.priority_score,
         },
       };
       this.eventBus.publish(voteEvent);
     }
 
-    const priorityEvent: IssuePriorityUpdated = {
-      eventId: crypto.randomUUID(),
+    const priorityEvent: DomainEvent<IssuePriorityUpdatedV1Payload> = {
+      type: 'IssuePriorityUpdated',
       occurredAt: new Date(),
-      aggregateId: issueId,
-      name: 'IssuePriorityUpdated',
       payload: {
         issueId,
         priorityScore: payload.priority_score,

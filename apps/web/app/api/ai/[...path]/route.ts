@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
     
     // Return the response directly to stream the SSE chunks back to the client
     return response;
-  } catch (error) {
+  } catch {
     return new Response('Internal Server Error', { status: 500 });
   }
 }

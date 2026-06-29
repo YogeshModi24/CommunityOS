@@ -203,7 +203,7 @@ export class MongoIssueRepository implements IIssueRepository {
             { priority_score: val, _id: { $lt: objectId } },
           ];
         }
-      } catch (err) {
+      } catch (_err) {
         // ignore invalid cursor
       }
     }

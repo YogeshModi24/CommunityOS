@@ -53,6 +53,17 @@ export interface AIAnalysisSubDocument {
   processedAt: Date;
 }
 
+export interface IssueAssignment {
+  department?: string;
+  assignedToId?: string;
+  assignedToName?: string;
+  assignedToRole?: string;
+  assignedAt: Date;
+  assignedById: string;
+  dueDate?: Date;
+  status: 'assigned' | 'acknowledged' | 'in_progress';
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -60,7 +71,7 @@ export interface Issue {
   category: IssueCategory;
   severity: IssueSeverity;
   status: IssueStatus;
-  ai_status?: AIAnalysisStatus; // 'pending' | 'processing' | 'completed' | 'failed'
+  ai_status?: AIAnalysisStatus;
   priority_score: number;
   location: IssueLocation;
   address: string;
@@ -73,6 +84,7 @@ export interface Issue {
   department?: string;
   estimated_sla_days?: number;
   ai_analysis?: AIAnalysisSubDocument;
+  assignment?: IssueAssignment;
   votes: number;
   voter_ids: string[];
   reporter_id: string | PopulatedReporter;

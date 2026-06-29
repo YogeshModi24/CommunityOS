@@ -1,3 +1,4 @@
+import { eventBus } from '@community-os/events';
 import { LoggerMetrics } from '@community-os/logger';
 import { RepositoryFactory } from '@community-os/repositories';
 import { SystemClock } from '@community-os/utils';
@@ -5,15 +6,19 @@ import { SystemClock } from '@community-os/utils';
 import { logger } from '../lib/logger';
 import { AIService } from '../services/AIService';
 import { AuthService } from '../services/AuthService';
+import { InsightService } from '../services/InsightService';
 import { IssueService } from '../services/IssueService';
 import { NotificationService } from '../services/NotificationService';
 import { CloudinaryStorageProvider } from '../services/providers/CloudinaryStorageProvider';
 import { OpenAIProvider } from '../services/providers/OpenAIProvider';
+import { ReputationService } from '../services/ReputationService';
 import { UploadService } from '../services/UploadService';
 import { UserService } from '../services/UserService';
 import { VoteService } from '../services/VoteService';
 import { AnalyzeIssueUseCase } from '../use-cases/AnalyzeIssueUseCase';
+import { AssignIssueUseCase } from '../use-cases/AssignIssueUseCase';
 import { DeleteNotificationUseCase } from '../use-cases/DeleteNotificationUseCase';
+import { GetCitizenInsightsUseCase } from '../use-cases/GetCitizenInsightsUseCase';
 import { GetDashboardDataUseCase } from '../use-cases/GetDashboardDataUseCase';
 import { GetRecentNotificationsUseCase } from '../use-cases/GetRecentNotificationsUseCase';
 import { GetUnreadCountUseCase } from '../use-cases/GetUnreadCountUseCase';
@@ -25,7 +30,6 @@ import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
 import { ReportIssueUseCase } from '../use-cases/ReportIssueUseCase';
 import { ResolveIssueUseCase } from '../use-cases/ResolveIssueUseCase';
 import { VoteIssueUseCase } from '../use-cases/VoteIssueUseCase';
-import { EventEmitterEventBus } from './events/EventEmitterEventBus';
 
 class ServiceContainer {
   private instances = new Map<any, any>();
@@ -44,18 +48,20 @@ class ServiceContainer {
     // 2. Instantiating Infrastructure / Event Bus / Providers
     const clock = new SystemClock();
     const metrics = new LoggerMetrics(logger);
-    const eventBus = new EventEmitterEventBus();
+    // eventBus is imported as a singleton
     const storageProvider = new CloudinaryStorageProvider();
     const aiProvider = new OpenAIProvider();
 
     // 3. Instantiating Services
     const authService = new AuthService(userRepository, userSessionRepository, clock, metrics);
-    const userService = new UserService(userRepository);
+    const reputationService = new ReputationService();
+    const userService = new UserService(userRepository, reputationService);
     const issueService = new IssueService(issueRepository, userRepository);
     const voteService = new VoteService(issueRepository);
     const aiService = new AIService(aiProvider);
     const uploadService = new UploadService(storageProvider);
     const notificationService = new NotificationService(notificationRepository, eventBus, metrics);
+    const insightService = new InsightService(issueRepository, userRepository);
 
     // 4. Instantiating Use Cases
     const loginUserUseCase = new LoginUserUseCase(authService);
@@ -70,6 +76,8 @@ class ServiceContainer {
     );
     const voteIssueUseCase = new VoteIssueUseCase(voteService, eventBus);
     const resolveIssueUseCase = new ResolveIssueUseCase(issueService, eventBus);
+    const assignIssueUseCase = new AssignIssueUseCase(issueService, eventBus);
+    const getCitizenInsightsUseCase = new GetCitizenInsightsUseCase(insightService);
     const getDashboardDataUseCase = new GetDashboardDataUseCase(userService);
     const getRecentNotificationsUseCase = new GetRecentNotificationsUseCase(notificationService);
     const getUnreadCountUseCase = new GetUnreadCountUseCase(notificationService);
@@ -93,6 +101,8 @@ class ServiceContainer {
     this.instances.set('aiService', aiService);
     this.instances.set('uploadService', uploadService);
     this.instances.set('notificationService', notificationService);
+    this.instances.set('reputationService', reputationService);
+    this.instances.set('insightService', insightService);
 
     this.instances.set(LoginUserUseCase, loginUserUseCase);
     this.instances.set(RefreshTokenUseCase, refreshTokenUseCase);
@@ -101,6 +111,8 @@ class ServiceContainer {
     this.instances.set(AnalyzeIssueUseCase, analyzeIssueUseCase);
     this.instances.set(VoteIssueUseCase, voteIssueUseCase);
     this.instances.set(ResolveIssueUseCase, resolveIssueUseCase);
+    this.instances.set(AssignIssueUseCase, assignIssueUseCase);
+    this.instances.set(GetCitizenInsightsUseCase, getCitizenInsightsUseCase);
     this.instances.set(GetDashboardDataUseCase, getDashboardDataUseCase);
     this.instances.set(GetRecentNotificationsUseCase, getRecentNotificationsUseCase);
     this.instances.set(GetUnreadCountUseCase, getUnreadCountUseCase);

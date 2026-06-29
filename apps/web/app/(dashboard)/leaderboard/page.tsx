@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { HallOfFameCard } from '@/components/layout/HallOfFameCard';
 import { OSStateView } from '@/components/layout/OSStateView';
 import { Avatar } from '@/components/ui/primitives';
+import { useSocket } from '@/hooks/useSocket';
 import { api } from '@/lib/api';
 
 export default function LeaderboardPage() {
@@ -14,26 +15,37 @@ export default function LeaderboardPage() {
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchLeaderboard = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/api/users/leaderboard');
+      const users = res.data.data.map((u: any, i: number) => ({
+        id: u.id || u._id,
+        name: u.name,
+        xp: u.points || 0,
+        rank: i + 1,
+        badges: u.role === 'admin' ? ['verified'] : [],
+      }));
+      setLeaderboardData(users);
+    } catch (err) {
+      console.warn('Failed to load leaderboard', err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setLoading(true);
-    api
-      .get('/api/users/leaderboard')
-      .then((res) => {
-        const users = res.data.data.map((u: any, i: number) => ({
-          id: u.id || u._id,
-          name: u.name,
-          xp: u.points || 0,
-          rank: i + 1,
-          badges: u.role === 'admin' ? ['verified'] : [],
-        }));
-        setLeaderboardData(users);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.warn('Failed to load leaderboard', err);
-        setLoading(false);
-      });
+    fetchLeaderboard();
+
+    const handleResync = () => fetchLeaderboard();
+    window.addEventListener('socket:resync', handleResync);
+    return () => window.removeEventListener('socket:resync', handleResync);
   }, []);
+
+  useSocket({
+    'issue.updated.v1': () => fetchLeaderboard(true),
+    'issue.resolved.v1': () => fetchLeaderboard(true),
+  });
 
   const topPlayer = leaderboardData[0];
   const runnersUp = leaderboardData.slice(1, 4);

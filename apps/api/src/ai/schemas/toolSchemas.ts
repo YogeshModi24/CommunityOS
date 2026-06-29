@@ -37,3 +37,10 @@ export const GetLeaderboardSchema = z.object({
 export const GetOpenIssuesSchema = z.object({
   limit: z.number().optional().default(10).describe('Maximum number of issues to return.'),
 });
+
+export const AssignIssueSchema = z.object({
+  issueId: z.string().describe('The ID of the issue to assign.'),
+  department: z.string().describe('The department to assign the issue to.'),
+  assignedToName: z.string().optional().describe('The name of the assignee, if assigning to a specific person.'),
+  dueDate: z.string().optional().describe('The due date (ISO string) for resolving this issue.'),
+});

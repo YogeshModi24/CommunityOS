@@ -8,6 +8,8 @@ export interface IUser extends Document {
   ward?: string;
   points: number;
   issues_reported: number;
+  achievements?: Array<{ id: string; unlockedAt: Date; progress?: number }>;
+  savedLocations?: Array<{ type: 'home' | 'office' | 'university' | 'custom'; address: string; coordinates: [number, number] }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +27,26 @@ const UserSchema = new Schema<IUser>(
     ward: String,
     points: { type: Number, default: 0 },
     issues_reported: { type: Number, default: 0 },
+    achievements: {
+      type: [
+        {
+          id: { type: String, required: true },
+          unlockedAt: { type: Date, required: true },
+          progress: { type: Number },
+        },
+      ],
+      default: [],
+    },
+    savedLocations: {
+      type: [
+        {
+          type: { type: String, required: true, enum: ['home', 'office', 'university', 'custom'] },
+          address: { type: String, required: true },
+          coordinates: { type: [Number], required: true },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

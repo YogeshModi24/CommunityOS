@@ -6,6 +6,7 @@ export interface IUserRepository {
   findByEmailWithPassword(email: string): Promise<User | null>;
   getLeaderboard(limit: number): Promise<User[]>;
   incrementPointsAndIssues(id: string, points: number, issuesCount: number): Promise<User | null>;
+  saveLocation(userId: string, location: Omit<User['savedLocations'][0], 'id'>): Promise<User | null>;
   create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
   getDashboardProjection(userId: string): Promise<any>;
   findByWard(ward: string): Promise<User[]>;

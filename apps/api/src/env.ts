@@ -13,8 +13,10 @@ try {
   validatedEnv = validateServerEnv();
 } catch (error) {
   if (error instanceof ConfigurationValidationError) {
+    // eslint-disable-next-line no-console
     console.error(error.message);
   } else {
+    // eslint-disable-next-line no-console
     console.error('[STARTUP ERROR] Fatal error loading configuration:', error);
   }
   process.exit(1);

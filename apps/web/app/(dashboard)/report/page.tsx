@@ -2,6 +2,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
@@ -216,11 +217,14 @@ export default function ReportPage() {
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileChange}
+                aria-label="Upload image evidence"
               />
 
-              <div
-                className="w-full max-w-2xl aspect-[16/10] rounded-[40px] border border-border bg-layer1 hover:bg-layer2 hover:border-citizen/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-8 group relative overflow-hidden shadow-2xl"
+              <button
+                type="button"
+                className="w-full max-w-2xl aspect-[16/10] rounded-[40px] border border-border bg-layer1 hover:bg-layer2 hover:border-citizen/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-8 group relative overflow-hidden shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen"
                 onClick={() => fileInputRef.current?.click()}
+                aria-label="Click to browse or upload image evidence"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-citizen/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -241,7 +245,7 @@ export default function ReportPage() {
                     Drag & drop an image or click to browse
                   </p>
                 </div>
-              </div>
+              </button>
             </motion.div>
           )}
 
@@ -256,11 +260,13 @@ export default function ReportPage() {
               className="flex flex-col items-center justify-center h-full min-h-[500px]"
             >
               <div className="w-full max-w-2xl relative rounded-[40px] overflow-hidden border border-border shadow-2xl bg-layer1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 {image && (
-                  <img
+                  <Image
                     src={image}
                     alt="Upload"
+                    width={800}
+                    height={600}
+                    unoptimized
                     className="w-full aspect-video object-cover brightness-[0.25] contrast-125 saturate-0 transition-all duration-1000"
                     style={{
                       filter: isScanning
@@ -525,11 +531,13 @@ export default function ReportPage() {
               {/* Sidebar Metadata */}
               <div className="w-full lg:w-80 shrink-0 space-y-8">
                 <div className="rounded-[32px] overflow-hidden border border-border shadow-xl relative group bg-layer1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   {image && (
-                    <img
+                    <Image
                       src={image}
                       alt="Evidence of issue"
+                      width={400}
+                      height={400}
+                      unoptimized
                       className="w-full aspect-square lg:aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   )}

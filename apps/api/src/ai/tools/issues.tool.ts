@@ -1,8 +1,10 @@
 import { RepositoryFactory } from '@community-os/repositories';
 import { DynamicStructuredTool } from '@langchain/core/tools';
 
+import { container } from '../../infra/container';
 import { DashboardService } from '../../services/DashboardService';
 import { 
+  AssignIssueSchema,
   GetCriticalIssuesSchema, 
   GetIssueByIdSchema, 
   GetIssuesByCategorySchema, 
@@ -111,4 +113,32 @@ export const getIssuesByDepartmentTool: any = new (DynamicStructuredTool as any)
       return JSON.stringify({ error: `Failed to fetch issues by department: ${e.message}` });
     }
   },
+});
+
+export const assignIssueTool: any = new (DynamicStructuredTool as any)({
+  name: 'assignIssue',
+  description: 'Assigns a civic issue to a specific department or person, and optionally sets a due date.',
+  schema: AssignIssueSchema,
+  func: async ({ issueId, department, assignedToName, dueDate }: { issueId: string, department: string, assignedToName?: string, dueDate?: string }) => {
+    try {
+      const { AssignIssueUseCase } = await import('../../use-cases/AssignIssueUseCase');
+      const assignUseCase = container.resolve<any>(AssignIssueUseCase);
+      
+      const parsedDueDate = dueDate ? new Date(dueDate) : undefined;
+      // Using 'ai-copilot' as the system actor ID
+      const result = await assignUseCase.execute(
+        issueId,
+        { department, assignedToName, dueDate: parsedDueDate },
+        'ai-copilot'
+      );
+      
+      if (result.isFailure) {
+        return JSON.stringify({ error: `Failed to assign issue: ${result.error}` });
+      }
+      
+      return JSON.stringify({ success: true, message: `Issue ${issueId} successfully assigned to ${department}.` });
+    } catch (e: any) {
+      return JSON.stringify({ error: `Exception assigning issue: ${e.message}` });
+    }
+  }
 });

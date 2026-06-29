@@ -13,6 +13,7 @@ export interface IIssueService {
   getNearbyIssues(dto: NearbyIssuesQueryDTO): Promise<Result<any, string>>;
   listIssues(dto: ListIssuesQueryDTO): Promise<Result<any, string>>;
   updateStatus(id: string, dto: UpdateIssueStatusDTO): Promise<Result<Issue, string>>;
+  assignIssue(id: string, assignment: any): Promise<Result<Issue, string>>;
   updateIssueAIResults(
     id: string,
     analysis: {

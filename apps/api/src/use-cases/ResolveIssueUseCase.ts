@@ -1,6 +1,6 @@
-import { Issue, IssueResolved, UpdateIssueStatusDTO } from '@community-os/types';
+import { DomainEvent, IssueResolvedV1Payload } from '@community-os/events';
+import { Issue, UpdateIssueStatusDTO } from '@community-os/types';
 import { Result } from '@community-os/utils';
-import crypto from 'crypto';
 
 import { IEventBus } from '../services/contracts/IEventBus';
 import { IIssueService } from '../services/contracts/IIssueService';
@@ -20,15 +20,13 @@ export class ResolveIssueUseCase {
     const updatedIssue = result.value;
 
     if (dto.status === 'resolved') {
-      const resolvedEvent: IssueResolved = {
-        eventId: crypto.randomUUID(),
+      const resolvedEvent: DomainEvent<IssueResolvedV1Payload> = {
+        type: 'IssueResolved',
         occurredAt: new Date(),
-        aggregateId: issueId,
-        name: 'IssueResolved',
         payload: {
           issueId,
-          resolverId: undefined, // authority/admin userId can be mapped if available
-          resolutionNote: dto.note,
+          resolutionNote: dto.note || '',
+          resolvedAt: new Date(),
         },
       };
       this.eventBus.publish(resolvedEvent);

@@ -57,8 +57,8 @@ export function startAIWorker(): Worker<AIJobData> | null {
   }
 
   logger.info('[AIWorker] Starting BullMQ Worker...', { event: 'ai_worker_starting' });
-  const worker = new Worker<AIJobData>(
-    'ai-analysis',
+  const aiWorker = new Worker<AIJobData>(
+    'ai-tasks',
     async (job) => {
       await processJob(job.data);
     },
@@ -68,19 +68,19 @@ export function startAIWorker(): Worker<AIJobData> | null {
     }
   );
 
-  worker.on('failed', (job, err) => {
+  aiWorker.on('failed', (job, err: Error) => {
     logger.error(`[AIWorker] Job ${job?.id} failed: ${err.message}`, err, {
       event: 'ai_worker_job_failed',
       jobId: job?.id,
     });
   });
 
-  worker.on('completed', (job) => {
+  aiWorker.on('completed', (job) => {
     logger.info(`[AIWorker] Job ${job.id} completed`, {
       event: 'ai_worker_job_completed',
       jobId: job.id,
     });
   });
 
-  return worker;
+  return aiWorker;
 }

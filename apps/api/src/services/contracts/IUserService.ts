@@ -11,4 +11,8 @@ export interface IUserService {
     issuesCount: number
   ): Promise<Result<User, string>>;
   getDashboardData(userId: string): Promise<Result<any, string>>;
+  saveLocation(
+    userId: string,
+    location: Omit<User['savedLocations'][0], 'id'>
+  ): Promise<Result<User, string>>;
 }

@@ -16,7 +16,11 @@
   "dependencies": {
     "@community-os/config": "*",
     "@community-os/errors": "*",
+    "@community-os/events": "*",
     "@community-os/logger": "*",
+    "@community-os/repositories": "*",
+    "@community-os/types": "*",
+    "@community-os/validation": "*",
     "@langchain/core": "^0.3.0",
     "@langchain/openai": "^0.3.0",
     "bcryptjs": "^2.4.3",

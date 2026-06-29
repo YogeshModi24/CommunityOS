@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use client';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -11,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { OSStateView } from '@/components/layout/OSStateView';
 import { Avatar, CategoryBadge, StatusBadge } from '@/components/ui/primitives';
+import { useSocket } from '@/hooks/useSocket';
 import { api } from '@/lib/api';
 
 // Use public token or placeholder
@@ -64,14 +66,13 @@ export default function MapPage() {
 
   // Fetch issues
   useEffect(() => {
-    setLoadingIssues(true);
-    setApiError(false);
-    const params = new URLSearchParams();
-    if (activeCat !== 'all') params.append('category', activeCat);
-    params.append('limit', '100');
+    const fetchIssues = () => {
+      setLoadingIssues(true);
+      setApiError(false);
+      const params = new URLSearchParams();
+      if (activeCat !== 'all') params.append('category', activeCat);
+      params.append('limit', '100');
 
-    // Debounce wrapper conceptually - React 18 + fast API means we can just fetch
-    const timeout = setTimeout(() => {
       api
         .get(`/api/issues?${params.toString()}`)
         .then((res) => {
@@ -79,14 +80,21 @@ export default function MapPage() {
           setLoadingIssues(false);
         })
         .catch((err) => {
-          // eslint-disable-next-line no-console
           console.error('Failed to load map issues:', err);
           setApiError(true);
           setLoadingIssues(false);
         });
-    }, 200);
+    };
 
-    return () => clearTimeout(timeout);
+    const timeout = setTimeout(fetchIssues, 200);
+
+    const handleResync = () => fetchIssues();
+    window.addEventListener('socket:resync', handleResync);
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('socket:resync', handleResync);
+    };
   }, [activeCat]);
 
   // Memoize GeoJSON
@@ -97,6 +105,7 @@ export default function MapPage() {
         .filter((i) => i.location && i.location.coordinates)
         .map((i) => ({
           type: 'Feature',
+          id: i.id || i._id,
           geometry: { type: 'Point', coordinates: i.location.coordinates },
           properties: {
             id: i.id || i._id,
@@ -110,6 +119,79 @@ export default function MapPage() {
     };
   }, [issues]);
 
+  useSocket({
+    'issue.created.v1': (payload: any) => {
+      if (activeCat !== 'all' && payload.category !== activeCat) return;
+      setIssues((prev) => {
+        const newIssue = {
+          _id: payload.issueId,
+          id: payload.issueId,
+          title: payload.title,
+          status: 'pending',
+          category: payload.category,
+          severity: 0,
+          ai_confidence: 0,
+          location: payload.location,
+          votes: 1,
+          createdAt: payload.createdAt || new Date().toISOString(),
+        };
+        return [newIssue, ...prev];
+      });
+
+      // Trigger pulse effect
+      if (map.current && map.current.isStyleLoaded()) {
+        setTimeout(() => {
+          map.current?.setFeatureState(
+            { source: 'issues', id: payload.issueId },
+            { highlight: true }
+          );
+          setTimeout(() => {
+            map.current?.setFeatureState(
+              { source: 'issues', id: payload.issueId },
+              { highlight: false }
+            );
+          }, 3000);
+        }, 500); // give time for geojson to update
+      }
+    },
+    'issue.updated.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, category: payload.category || issue.category, severity: payload.severity || issue.severity }
+            : issue
+        )
+      );
+    },
+    'issue.resolved.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, status: 'resolved' }
+            : issue
+        )
+      );
+    },
+    'vote.added.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, votes: payload.newVoteCount }
+            : issue
+        )
+      );
+    },
+    'vote.removed.v1': (payload: any) => {
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === payload.issueId || issue._id === payload.issueId
+            ? { ...issue, votes: payload.newVoteCount }
+            : issue
+        )
+      );
+    },
+  });
+
   // Map Initialization
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -122,7 +204,8 @@ export default function MapPage() {
       pitch: 60,
       bearing: -17.6,
       antialias: true,
-    });
+      promoteId: 'id', // Use 'id' property as feature id if top-level id is missing
+    } as any);
 
     map.current.on('load', () => {
       setLoadingMap(false);
@@ -208,7 +291,18 @@ export default function MapPage() {
             '#F59E0B',
             '#3B82F6', // default blue (open)
           ],
-          'circle-radius': 8,
+          'circle-radius': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            16,
+            8
+          ],
+          'circle-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            0.8,
+            1
+          ],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff',
         },

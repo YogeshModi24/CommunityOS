@@ -3,6 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { createServer } from 'http';
+import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 
 import { env } from './env'; // validates all env vars at startup — must be first
@@ -42,8 +43,57 @@ app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ai', aiRoutes);
 
-app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+import Redis from 'ioredis';
+import mongoose from 'mongoose';
 
+const healthRedisClient = new Redis(env.REDIS_URL, { lazyConnect: true });
+let isRedisConnecting = false;
+async function checkRedis() {
+  if (env.REDIS_URL === 'mock' || env.REDIS_URL.includes('change_me')) return true;
+  if ((healthRedisClient.status as string) === 'ready') return true;
+  if (!isRedisConnecting) {
+    isRedisConnecting = true;
+    try { await healthRedisClient.connect(); } catch {
+      // ignore
+    }
+  }
+  return (healthRedisClient.status as string) === 'ready';
+}
+
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'community-os-api',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/ready', async (_req, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const isDbConnected = dbState === 1;
+    const isRedisConnected = await checkRedis();
+
+    if (isDbConnected && isRedisConnected) {
+      res.status(200).json({
+        status: 'ready',
+        mongodb: 'connected',
+        redis: 'connected',
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      res.status(503).json({
+        status: 'not_ready',
+        mongodb: isDbConnected ? 'connected' : 'disconnected',
+        redis: isRedisConnected ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  } catch (error) {
+    res.status(503).json({ status: 'error', error: String(error) });
+  }
+});
 app.use(errorHandler);
 
 // Export io as singleton
@@ -61,14 +111,48 @@ async function main(): Promise<void> {
     cors: { origin: env.CLIENT_URL, methods: ['GET', 'POST'], credentials: true },
   });
 
-  io.on('connection', (socket) => {
-    logger.info(`[Socket.io] Client connected: ${socket.id}`, { event: 'socket_connected' });
-    socket.on('join', (data: { userId: string }) => {
-      if (data?.userId) {
-        socket.join(`user:${data.userId}`);
-        logger.info(`[Socket.io] User ${data.userId} joined room user:${data.userId}`);
+  io.use((socket, next) => {
+    try {
+      const authHeader = socket.handshake.auth?.token || socket.handshake.headers['authorization'];
+      let token = '';
+
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      } else if (socket.handshake.headers.cookie) {
+        // Fallback to cookie
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const cookies = require('cookie').parse(socket.handshake.headers.cookie);
+        token = cookies['community_os_token'] || ''; // adjust based on actual cookie name if different, NextAuth uses next-auth.session-token
       }
-    });
+
+      if (!token) {
+        return next(new Error('Authentication error: Token missing'));
+      }
+
+      const decoded = jwt.verify(token, env.JWT_SECRET) as { sub: string; role: string; department?: string };
+      socket.data.user = { id: decoded.sub, role: decoded.role, department: decoded.department };
+      next();
+    } catch {
+      next(new Error('Authentication error: Invalid token'));
+    }
+  });
+
+  io.on('connection', (socket) => {
+    const user = socket.data.user;
+    logger.info(`[Socket.io] Client connected: ${socket.id} (User: ${user.id}, Role: ${user.role})`, { event: 'socket_connected' });
+
+    // Join Role-based Rooms
+    socket.join(`User:${user.id}`);
+    
+    if (user.role === 'citizen') {
+      socket.join('Citizens');
+    } else if (user.role === 'municipality' || user.role === 'authority' || user.role === 'admin') {
+      socket.join('Municipality');
+      if (user.department) {
+        socket.join(`Department:${user.department}`);
+      }
+    }
+
     socket.on('disconnect', () => {
       logger.info(`[Socket.io] Client disconnected: ${socket.id}`, {
         event: 'socket_disconnected',

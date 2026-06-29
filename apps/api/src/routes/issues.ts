@@ -3,6 +3,7 @@ import multer from 'multer';
 
 import {
   analyzeImage,
+  assignIssue,
   createIssue,
   getIssue,
   getNearbyIssues,
@@ -47,6 +48,9 @@ router.get('/:id', getIssue);
 
 // PATCH /api/issues/:id/status  — auth required
 router.patch('/:id/status', authMiddleware, updateStatus);
+
+// POST /api/issues/:id/assign — auth required
+router.post('/:id/assign', authMiddleware, assignIssue);
 
 // POST /api/issues/:id/vote  — auth required
 router.post('/:id/vote', authMiddleware, toggleVote);

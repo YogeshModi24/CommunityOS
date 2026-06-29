@@ -59,7 +59,8 @@ export function Sidebar({ user }: { user: any }) {
 
       {/* Profile summary */}
       <div className="px-6 mb-8">
-        <div
+        <Link
+          href="/profile"
           className={clsx(
             'p-3 rounded-2xl bg-layer2 border border-border flex items-center gap-4 hover:bg-white/5 hover:border-white/20 transition-all cursor-pointer shadow-inner',
             isCollapsed && 'justify-center'
@@ -82,7 +83,7 @@ export function Sidebar({ user }: { user: any }) {
               )}
             </div>
           )}
-        </div>
+        </Link>
       </div>
 
       <nav className="flex-1 flex flex-col gap-8 overflow-y-auto hide-scrollbar px-3">

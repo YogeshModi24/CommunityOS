@@ -12,7 +12,7 @@ vi.mock('cloudinary', () => {
         upload_stream: vi.fn(),
         destroy: vi.fn(),
       },
-      url: vi.fn((publicId, opts) => `https://res.cloudinary.com/mock/${publicId}`),
+      url: vi.fn((publicId, _opts) => `https://res.cloudinary.com/mock/${publicId}`),
     },
   };
 });
@@ -101,7 +101,7 @@ describe('UploadService and CloudinaryStorageProvider Retry Strategy', () => {
 
       // Override the setTimeout inside retryWithBackoff to speed up test execution
       const originalSetTimeout = global.setTimeout;
-      global.setTimeout = ((fn: any, delay: number) => {
+      global.setTimeout = ((fn: any, _delay: number) => {
         fn();
       }) as any;
 

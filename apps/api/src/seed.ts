@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { RepositoryFactory } from '@community-os/repositories';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
@@ -30,6 +31,8 @@ async function seed(): Promise<void> {
     ward: 'Ward 12',
     points: 142,
     issues_reported: 9,
+    savedLocations: [],
+    achievements: [],
   });
 
   const priya = await userRepository.create({
@@ -40,6 +43,8 @@ async function seed(): Promise<void> {
     ward: 'Ward 7',
     points: 89,
     issues_reported: 6,
+    savedLocations: [],
+    achievements: [],
   });
 
   console.error(`[Seed] Created users: ${rahul.name}, ${priya.name}`);

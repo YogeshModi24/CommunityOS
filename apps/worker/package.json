@@ -14,6 +14,7 @@
   "dependencies": {
     "@community-os/config": "*",
     "@community-os/errors": "*",
+    "@community-os/events": "*",
     "@community-os/logger": "*",
     "@community-os/repositories": "*",
     "@community-os/types": "*",

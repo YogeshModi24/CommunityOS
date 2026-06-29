@@ -124,3 +124,34 @@ export async function updateStatus(
     next(err);
   }
 }
+
+// POST /api/issues/:id/assign
+export async function assignIssue(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { department, assignedToId, assignedToName, assignedToRole, dueDate } = req.body;
+    if (!department) {
+      throw new ValidationError('Department is required for assignment');
+    }
+    
+    // We import AssignIssueUseCase inside the function or at the top
+    const { AssignIssueUseCase } = await import('../use-cases/AssignIssueUseCase');
+    const assignUseCase = container.resolve<any>(AssignIssueUseCase);
+    
+    const result = await assignUseCase.execute(
+      req.params.id,
+      { department, assignedToId, assignedToName, assignedToRole, dueDate },
+      req.userId!
+    );
+    
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -1,6 +1,6 @@
-import { DomainEvent } from '@community-os/types';
+import { DomainEvent } from '@community-os/events';
 
 export interface IEventBus {
-  publish(event: DomainEvent): void;
+  publish<T>(event: DomainEvent<T>): void;
   subscribe(eventName: string, handler: (event: any) => void): void;
 }

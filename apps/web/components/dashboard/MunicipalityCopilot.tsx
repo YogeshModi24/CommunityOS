@@ -4,9 +4,12 @@ import { Bot, RefreshCcw, Send, Square, Trash2 } from 'lucide-react';
 import React from 'react';
 
 import { useAIChat } from '@/hooks/useAIChat';
+import { useSocket } from '@/hooks/useSocket';
 import { aiClient } from '@/lib/api/ai';
 
 export function MunicipalityCopilot() {
+  const [hasNewData, setHasNewData] = React.useState(false);
+  
   const {
     messages,
     input,
@@ -23,6 +26,14 @@ export function MunicipalityCopilot() {
     initialMessages: [
       { role: 'assistant', content: 'Welcome to Mission Control. How can I assist you with operational insights today?' }
     ]
+  });
+
+  useSocket({
+    'dashboard.invalidated.v1': () => {
+      setHasNewData(true);
+      // Auto-hide the badge after 5 seconds
+      setTimeout(() => setHasNewData(false), 5000);
+    }
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -58,7 +69,14 @@ export function MunicipalityCopilot() {
             <Bot className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-display font-bold text-white uppercase tracking-wider">Municipality Copilot</h3>
+            <h3 className="text-sm font-display font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              Municipality Copilot
+              {hasNewData && (
+                <span className="bg-success/20 text-success text-[10px] px-1.5 py-0.5 rounded-full animate-pulse border border-success/30">
+                  Data Updated
+                </span>
+              )}
+            </h3>
             <p className="text-xs text-text-tertiary font-mono">Operations Analyst</p>
           </div>
         </div>

@@ -276,7 +276,11 @@ export function Toast({
       className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-xl border text-sm font-medium shadow-xl backdrop-blur-xl ${styles[type]}`}
     >
       <span>{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100 transition-opacity">
+      <button
+        onClick={onClose}
+        aria-label="Close notification"
+        className="ml-2 opacity-60 hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-current rounded"
+      >
         ✕
       </button>
     </motion.div>

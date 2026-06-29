@@ -9,6 +9,23 @@ export interface User {
   ward?: string;
   points: number;
   issues_reported: number;
+  achievements: {
+    id: string;
+    unlockedAt: Date;
+    progress?: number;
+  }[];
+  savedLocations: {
+    type: 'home' | 'office' | 'university' | 'custom';
+    address: string;
+    coordinates: [number, number];
+  }[];
+  reputation?: {
+    level: number;
+    xpProgress: number;
+    nextLevelPoints: number;
+    currentLevelPoints: number;
+    rankTitle: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

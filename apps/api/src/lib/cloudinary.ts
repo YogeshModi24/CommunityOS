@@ -12,7 +12,7 @@ export { cloudinary };
 
 export async function uploadBufferToCloudinary(
   buffer: Buffer,
-  originalName: string
+  _originalName: string
 ): Promise<{ url: string; public_id: string }> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(

@@ -43,6 +43,30 @@ export class MongoUserRepository implements IUserRepository {
     return doc ? mapMongoUser(doc) : null;
   }
 
+  async saveLocation(
+    userId: string,
+    location: { type: string; address: string; coordinates: [number, number] }
+  ): Promise<User | null> {
+    const doc = await UserMongoose.findById(userId);
+    if (!doc) return null;
+
+    if (!doc.savedLocations) {
+      doc.savedLocations = [];
+    }
+
+    // Check if type exists, if so update it, else push
+    const existingIndex = doc.savedLocations.findIndex((l) => l.type === location.type);
+    if (existingIndex >= 0) {
+      doc.savedLocations[existingIndex].address = location.address;
+      doc.savedLocations[existingIndex].coordinates = location.coordinates;
+    } else {
+      doc.savedLocations.push(location as any);
+    }
+
+    await doc.save();
+    return mapMongoUser(doc.toObject());
+  }
+
   async create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     const doc = await UserMongoose.create(user);
     return mapMongoUser(doc.toObject());

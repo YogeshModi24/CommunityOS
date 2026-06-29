@@ -1,4 +1,5 @@
 export * from './AnalyzeIssueUseCase';
+export * from './AssignIssueUseCase';
 export * from './GetDashboardDataUseCase';
 export * from './LoginUserUseCase';
 export * from './LogoutUserUseCase';

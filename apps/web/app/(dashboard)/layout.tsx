@@ -9,6 +9,8 @@ import { CommandPalette } from '@/components/layout/CommandPalette';
 import { FloatingActionButton, MobileNav } from '@/components/layout/MobileNav';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { CitizenProvider } from '@/providers/CitizenProvider';
+import { NotificationProvider } from '@/providers/NotificationProvider';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -30,52 +32,57 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   else if (pathname === '/leaderboard') pageTitle = 'Leaderboard';
   else if (pathname === '/report') pageTitle = 'Report Issue';
   else if (pathname.startsWith('/issue/')) pageTitle = 'Issue Details';
+  else if (pathname === '/profile') pageTitle = 'Mission Control';
 
   if (!mounted) return null; // Avoid hydration mismatch on initial render
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg text-text-primary selection:bg-primary/25">
-      {/* Mesh Background */}
-      <div className="mesh-gradient" />
+    <CitizenProvider>
+      <NotificationProvider>
+        <div className="flex h-screen overflow-hidden bg-bg text-text-primary selection:bg-primary/25">
+          {/* Mesh Background */}
+          <div className="mesh-gradient" />
 
-      {/* Desktop Sidebar */}
-      <Sidebar user={session?.user} />
+          {/* Desktop Sidebar */}
+          <Sidebar user={session?.user} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen relative z-10 overflow-hidden">
-        {/* Top Navigation */}
-        {!isMap && <TopBar pageTitle={pageTitle} />}
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0 h-screen relative z-10 overflow-hidden">
+            {/* Top Navigation */}
+            {!isMap && <TopBar pageTitle={pageTitle} />}
 
-        {/* Page Content with AnimatePresence for transitions */}
-        <main
-          className={`flex-1 overflow-y-auto custom-scrollbar relative ${isMap ? '' : isFullScreen ? '' : 'px-4 lg:px-8 py-6 lg:py-8'}`}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key="os-content-layer"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className={
-                isMap
-                  ? 'h-full w-full absolute inset-0'
-                  : isFullScreen
-                    ? 'h-full'
-                    : 'max-w-container-max mx-auto'
-              }
+            {/* Page Content with AnimatePresence for transitions */}
+            <main
+              className={`flex-1 overflow-y-auto custom-scrollbar relative ${isMap ? '' : isFullScreen ? '' : 'px-4 lg:px-8 py-6 lg:py-8'}`}
             >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key="os-content-layer"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className={
+                    isMap
+                      ? 'h-full w-full absolute inset-0'
+                      : isFullScreen
+                        ? 'h-full'
+                        : 'max-w-container-max mx-auto'
+                  }
+                >
+                  {children}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+          </div>
 
-      <CommandPalette />
+          <CommandPalette />
 
-      {/* Mobile Navigation */}
-      <FloatingActionButton />
-      <MobileNav />
-    </div>
+          {/* Mobile Navigation */}
+          <FloatingActionButton />
+          <MobileNav />
+        </div>
+      </NotificationProvider>
+    </CitizenProvider>
   );
 }
