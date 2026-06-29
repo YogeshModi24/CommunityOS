@@ -14,17 +14,6 @@
 
 CommunityOS is a comprehensive, open-source platform designed to bridge the gap between citizens and their local municipalities. It provides an intuitive reporting interface, real-time telemetry, an event-driven architecture, AI-powered issue classification, proactive civic insights, and powerful geographic visualizations.
 
-## Screenshots
-
-<div align="center">
-  <img src="docs/images/landing.png" width="48%" alt="Landing Page">
-  <img src="docs/images/dashboard.png" width="48%" alt="Mission Control Dashboard">
-</div>
-<div align="center">
-  <img src="docs/images/map.png" width="48%" alt="Interactive Map">
-  <img src="docs/images/feed.png" width="48%" alt="Live Feed">
-</div>
-
 ## Features
 
 ### 🏛️ Citizen Experience
