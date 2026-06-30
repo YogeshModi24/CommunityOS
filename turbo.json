@@ -1,6 +1,29 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local"],
+  "globalEnv": [
+    "NODE_ENV",
+    "PORT",
+    "MONGODB_URI",
+    "REDIS_URL",
+    "OPENAI_API_KEY",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "JWT_SECRET",
+    "CLIENT_URL",
+    "NEXTAUTH_URL",
+    "NEXTAUTH_SECRET",
+    "AUTH_SECRET",
+    "AUTH_TRUST_HOST",
+    "AUTH_URL",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_SOCKET_URL",
+    "NEXT_PUBLIC_MAPBOX_TOKEN",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
+    "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET",
+    "VERCEL_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
