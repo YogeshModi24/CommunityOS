@@ -1,6 +1,8 @@
+import { ForbiddenError } from '@community-os/errors';
 import { Result } from '@community-os/utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { rbacMiddleware } from '../middleware/rbac';
 import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
 import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
 import { ListMunicipalityAccessRequestsUseCase } from '../use-cases/ListMunicipalityAccessRequestsUseCase';
@@ -193,6 +195,58 @@ describe('Registration & Access Requests Use Cases', () => {
       expect(result.error).toBe(
         "Access request cannot be approved because its status is 'approved'."
       );
+    });
+  });
+
+  describe('RBAC Middleware Negative Tests for Municipality endpoints', () => {
+    it('should reject a non-admin (citizen) user with 403 Forbidden', () => {
+      const middleware = rbacMiddleware(['admin']);
+      const req = {
+        userId: 'user-citizen',
+        userRole: 'citizen',
+      };
+      const res = {};
+      const next = vi.fn();
+
+      middleware(req as any, res as any, next);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      const errorPassed = next.mock.calls[0][0];
+      expect(errorPassed).toBeInstanceOf(ForbiddenError);
+      expect(errorPassed.status).toBe(403);
+      expect(errorPassed.message).toBe('Forbidden access: Insufficient permissions');
+    });
+
+    it('should reject anonymous requests with 403 Forbidden', () => {
+      const middleware = rbacMiddleware(['admin']);
+      const req = {
+        userId: undefined,
+        userRole: undefined,
+      };
+      const res = {};
+      const next = vi.fn();
+
+      middleware(req as any, res as any, next);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      const errorPassed = next.mock.calls[0][0];
+      expect(errorPassed).toBeInstanceOf(ForbiddenError);
+      expect(errorPassed.status).toBe(403);
+    });
+
+    it('should allow admin requests through', () => {
+      const middleware = rbacMiddleware(['admin']);
+      const req = {
+        userId: 'user-admin',
+        userRole: 'admin',
+      };
+      const res = {};
+      const next = vi.fn();
+
+      middleware(req as any, res as any, next);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith(); // called with no errors
     });
   });
 });
