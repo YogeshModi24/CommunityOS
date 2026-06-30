@@ -402,87 +402,112 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
                     </h3>
                   </div>
 
-                  <div className="space-y-6">
-                    {/* Assignment Sub-form */}
-                    <form
-                      onSubmit={handleAssign}
-                      className="space-y-4 pt-2 border-t border-white/5"
-                    >
-                      <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                        Assign Department
+                  {user?.role === 'municipality' && !user?.ward ? (
+                    <div className="p-5 rounded-2xl bg-danger/10 border border-danger/20 text-danger text-sm font-medium space-y-2 mt-4">
+                      <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+                        <span className="material-symbols-outlined text-[18px]">warning</span>
+                        No Ward Assigned
                       </div>
-                      <div>
-                        <select
-                          value={assignDept}
-                          onChange={(e) => setAssignDept(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent capitalize"
-                        >
-                          <option value="water_sewage">Water & Sewage</option>
-                          <option value="road_infrastructure">Roads & Infrastructure</option>
-                          <option value="sanitation">Sanitation</option>
-                          <option value="public_lighting">Public Lighting</option>
-                          <option value="encroachment">Encroachment Control</option>
-                          <option value="other">Other</option>
-                        </select>
+                      <p className="text-text-secondary leading-relaxed">
+                        Your account has no valid ward assigned. Please contact an administrator to
+                        set up your jurisdiction before dispatching or resolving incidents.
+                      </p>
+                    </div>
+                  ) : user?.role === 'municipality' && user?.ward !== issue?.ward ? (
+                    <div className="p-5 rounded-2xl bg-danger/10 border border-danger/20 text-danger text-sm font-medium space-y-2 mt-4">
+                      <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+                        <span className="material-symbols-outlined text-[18px]">block</span>
+                        Outside Jurisdiction
                       </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
-                          SLA Due Date
-                        </label>
-                        <input
-                          type="date"
-                          value={dueDate}
-                          onChange={(e) => setDueDate(e.target.value)}
-                          className="w-full px-4 py-2 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={dispatching}
-                        className="w-full py-2.5 rounded-xl bg-accent text-bg hover:bg-amber-500 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                      <p className="text-text-secondary leading-relaxed">
+                        This issue is registered in ward <strong>{issue?.ward || 'None'}</strong>.
+                        Your assigned jurisdiction is <strong>{user?.ward}</strong>. You do not have
+                        permissions to dispatch or resolve this incident.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Assignment Sub-form */}
+                      <form
+                        onSubmit={handleAssign}
+                        className="space-y-4 pt-2 border-t border-white/5"
                       >
-                        {dispatching ? 'Assigning...' : 'Dispatch / Assign'}
-                      </button>
-                    </form>
+                        <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                          Assign Department
+                        </div>
+                        <div>
+                          <select
+                            value={assignDept}
+                            onChange={(e) => setAssignDept(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent capitalize"
+                          >
+                            <option value="water_sewage">Water & Sewage</option>
+                            <option value="road_infrastructure">Roads & Infrastructure</option>
+                            <option value="sanitation">Sanitation</option>
+                            <option value="public_lighting">Public Lighting</option>
+                            <option value="encroachment">Encroachment Control</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
+                            SLA Due Date
+                          </label>
+                          <input
+                            type="date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            className="w-full px-4 py-2 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={dispatching}
+                          className="w-full py-2.5 rounded-xl bg-accent text-bg hover:bg-amber-500 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                        >
+                          {dispatching ? 'Assigning...' : 'Dispatch / Assign'}
+                        </button>
+                      </form>
 
-                    {/* Status Update Sub-form */}
-                    <form
-                      onSubmit={handleUpdateStatus}
-                      className="space-y-4 pt-6 border-t border-white/5"
-                    >
-                      <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                        Update Status
-                      </div>
-                      <div>
-                        <select
-                          value={issueStatus}
-                          onChange={(e) => setIssueStatus(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent capitalize"
-                        >
-                          <option value="open">Open</option>
-                          <option value="verified">Verified</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
-                        </select>
-                      </div>
-                      <div>
-                        <textarea
-                          placeholder="Add progress/resolution note..."
-                          value={statusNote}
-                          onChange={(e) => setStatusNote(e.target.value)}
-                          rows={2}
-                          className="w-full px-4 py-2 bg-layer2 border border-border rounded-xl text-white text-sm placeholder:text-text-tertiary focus:outline-none focus:border-accent resize-none"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={updatingStatus}
-                        className="w-full py-2.5 rounded-xl bg-white text-bg hover:bg-gray-100 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 border border-white/10"
+                      {/* Status Update Sub-form */}
+                      <form
+                        onSubmit={handleUpdateStatus}
+                        className="space-y-4 pt-6 border-t border-white/5"
                       >
-                        {updatingStatus ? 'Updating...' : 'Update Status'}
-                      </button>
-                    </form>
-                  </div>
+                        <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                          Update Status
+                        </div>
+                        <div>
+                          <select
+                            value={issueStatus}
+                            onChange={(e) => setIssueStatus(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent capitalize"
+                          >
+                            <option value="open">Open</option>
+                            <option value="verified">Verified</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                          </select>
+                        </div>
+                        <div>
+                          <textarea
+                            placeholder="Add progress/resolution note..."
+                            value={statusNote}
+                            onChange={(e) => setStatusNote(e.target.value)}
+                            rows={2}
+                            className="w-full px-4 py-2 bg-layer2 border border-border rounded-xl text-white text-sm placeholder:text-text-tertiary focus:outline-none focus:border-accent resize-none"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={updatingStatus}
+                          className="w-full py-2.5 rounded-xl bg-white text-bg hover:bg-gray-100 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 border border-white/10"
+                        >
+                          {updatingStatus ? 'Updating...' : 'Update Status'}
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

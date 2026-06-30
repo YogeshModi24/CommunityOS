@@ -4,6 +4,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, FileText, LayoutDashboard, Map, Plus, Search, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { api } from '@/lib/api';
@@ -18,6 +19,8 @@ interface CommandItem {
 }
 
 export function CommandPalette() {
+  const { data: session } = useSession();
+  const user = session?.user;
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -73,20 +76,22 @@ export function CommandPalette() {
   };
 
   // Static Routes & Actions
+  const isCitizen =
+    user?.role !== 'admin' && user?.role !== 'municipality' && user?.role !== 'authority';
   const baseItems: CommandItem[] = [
     {
       id: 'nav-dashboard',
       type: 'route',
-      title: 'Dashboard',
-      subtitle: 'Mission Control',
+      title: 'Command Center',
+      subtitle: 'Overview stats & operations',
       icon: <LayoutDashboard size={18} />,
       onSelect: () => router.push('/dashboard'),
     },
     {
       id: 'nav-feed',
       type: 'route',
-      title: 'Issues Feed',
-      subtitle: 'Browse all reports',
+      title: 'Community Feed',
+      subtitle: 'Civic incidents',
       icon: <Activity size={18} />,
       onSelect: () => router.push('/feed'),
     },
@@ -106,14 +111,18 @@ export function CommandPalette() {
       icon: <Trophy size={18} />,
       onSelect: () => router.push('/leaderboard'),
     },
-    {
-      id: 'action-report',
-      type: 'action',
-      title: 'Report New Issue',
-      subtitle: 'Log a civic anomaly',
-      icon: <Plus size={18} />,
-      onSelect: () => router.push('/report'),
-    },
+    ...(isCitizen
+      ? [
+          {
+            id: 'action-report',
+            type: 'action' as const,
+            title: 'Report New Issue',
+            subtitle: 'Log a civic anomaly',
+            icon: <Plus size={18} />,
+            onSelect: () => router.push('/report'),
+          },
+        ]
+      : []),
   ];
 
   // Dynamic Issues

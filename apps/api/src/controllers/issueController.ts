@@ -114,6 +114,36 @@ export async function updateStatus(
 ): Promise<void> {
   try {
     const validatedData = updateIssueStatusSchema.parse(req.body);
+
+    const issueService = container.resolve<IIssueService>('issueService');
+    const issueResult = await issueService.getIssue(req.params.id);
+    if (issueResult.isFailure) {
+      throw new ValidationError(issueResult.error);
+    }
+    const issue = issueResult.value;
+
+    if (req.userRole === 'admin') {
+      // Explicit Admin Bypass: Admin retains full access to all issues across all wards
+    } else if (req.userRole === 'municipality') {
+      const userRepository = container.resolve<any>('userRepository');
+      const requester = await userRepository.findById(req.userId!);
+      if (!requester || !requester.ward) {
+        res.status(403).json({
+          success: false,
+          error:
+            'Access denied: Your account has no ward assigned. Please contact an administrator.',
+        });
+        return;
+      }
+      if (requester.ward !== issue.ward) {
+        res.status(403).json({
+          success: false,
+          error: `Access denied: You are only authorized to manage issues in ward "${requester.ward}", but this issue belongs to "${issue.ward || 'None'}".`,
+        });
+        return;
+      }
+    }
+
     const resolveUseCase = container.resolve<ResolveIssueUseCase>(ResolveIssueUseCase);
     const result = await resolveUseCase.execute(req.params.id, validatedData);
     if (result.isFailure) {
@@ -135,6 +165,35 @@ export async function assignIssue(
     const { department, assignedToId, assignedToName, assignedToRole, dueDate } = req.body;
     if (!department) {
       throw new ValidationError('Department is required for assignment');
+    }
+
+    const issueService = container.resolve<IIssueService>('issueService');
+    const issueResult = await issueService.getIssue(req.params.id);
+    if (issueResult.isFailure) {
+      throw new ValidationError(issueResult.error);
+    }
+    const issue = issueResult.value;
+
+    if (req.userRole === 'admin') {
+      // Explicit Admin Bypass: Admin retains full access to all issues across all wards
+    } else if (req.userRole === 'municipality') {
+      const userRepository = container.resolve<any>('userRepository');
+      const requester = await userRepository.findById(req.userId!);
+      if (!requester || !requester.ward) {
+        res.status(403).json({
+          success: false,
+          error:
+            'Access denied: Your account has no ward assigned. Please contact an administrator.',
+        });
+        return;
+      }
+      if (requester.ward !== issue.ward) {
+        res.status(403).json({
+          success: false,
+          error: `Access denied: You are only authorized to manage issues in ward "${requester.ward}", but this issue belongs to "${issue.ward || 'None'}".`,
+        });
+        return;
+      }
     }
 
     // We import AssignIssueUseCase inside the function or at the top

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import { useSocket } from '@/hooks/useSocket';
 import { api } from '@/lib/api';
+import { useNotifications } from '@/providers/NotificationProvider';
 
 import { Avatar } from '../ui/primitives';
 
@@ -25,6 +26,7 @@ export function Sidebar({ user }: { user: any }) {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const { dispatch } = useNotifications();
 
   useEffect(() => {
     if (user?.role !== 'admin') return;
@@ -264,8 +266,9 @@ export function Sidebar({ user }: { user: any }) {
           </button>
 
           <button
+            onClick={() => dispatch({ type: 'SET_CENTER_OPEN', payload: true })}
             className={clsx(
-              'flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold transition-all group text-text-secondary hover:text-white relative',
+              'flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold transition-all group text-text-secondary hover:text-white relative w-full text-left',
               isCollapsed && 'justify-center'
             )}
             title={isCollapsed ? 'Notifications' : undefined}
@@ -281,20 +284,22 @@ export function Sidebar({ user }: { user: any }) {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="mt-auto px-6 pt-6">
-        <Link
-          href="/report"
-          className={clsx(
-            'w-full py-4 bg-citizen text-white rounded-[20px] text-sm font-bold flex items-center justify-center gap-3 hover:bg-blue-600 transition-all group shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] active:scale-95',
-            isCollapsed ? 'px-0 py-4 rounded-2xl' : 'px-4'
-          )}
-        >
-          <span className="material-symbols-outlined text-[24px] group-hover:rotate-90 transition-transform duration-300">
-            add
-          </span>
-          {!isCollapsed && <span className="whitespace-nowrap tracking-wide">Report Issue</span>}
-        </Link>
-      </div>
+      {user?.role !== 'admin' && user?.role !== 'municipality' && user?.role !== 'authority' && (
+        <div className="mt-auto px-6 pt-6">
+          <Link
+            href="/report"
+            className={clsx(
+              'w-full py-4 bg-citizen text-white rounded-[20px] text-sm font-bold flex items-center justify-center gap-3 hover:bg-blue-600 transition-all group shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] active:scale-95',
+              isCollapsed ? 'px-0 py-4 rounded-2xl' : 'px-4'
+            )}
+          >
+            <span className="material-symbols-outlined text-[24px] group-hover:rotate-90 transition-transform duration-300">
+              add
+            </span>
+            {!isCollapsed && <span className="whitespace-nowrap tracking-wide">Report Issue</span>}
+          </Link>
+        </div>
+      )}
     </motion.aside>
   );
 }

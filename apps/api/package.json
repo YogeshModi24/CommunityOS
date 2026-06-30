@@ -11,7 +11,7 @@
     "clean": "rm -rf dist .next tsconfig.tsbuildinfo",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "test": "vitest run"
+    "test": "vitest run src"
   },
   "dependencies": {
     "@community-os/config": "*",
