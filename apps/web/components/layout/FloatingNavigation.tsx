@@ -58,7 +58,7 @@ export function FloatingNavigation() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/login"
+            href="/login?type=citizen"
             className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors hidden sm:block"
           >
             Sign In

@@ -16,17 +16,21 @@ import { UploadService } from '../services/UploadService';
 import { UserService } from '../services/UserService';
 import { VoteService } from '../services/VoteService';
 import { AnalyzeIssueUseCase } from '../use-cases/AnalyzeIssueUseCase';
+import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
 import { AssignIssueUseCase } from '../use-cases/AssignIssueUseCase';
+import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
 import { DeleteNotificationUseCase } from '../use-cases/DeleteNotificationUseCase';
 import { GetCitizenInsightsUseCase } from '../use-cases/GetCitizenInsightsUseCase';
 import { GetDashboardDataUseCase } from '../use-cases/GetDashboardDataUseCase';
 import { GetRecentNotificationsUseCase } from '../use-cases/GetRecentNotificationsUseCase';
 import { GetUnreadCountUseCase } from '../use-cases/GetUnreadCountUseCase';
+import { ListMunicipalityAccessRequestsUseCase } from '../use-cases/ListMunicipalityAccessRequestsUseCase';
 import { LoginUserUseCase } from '../use-cases/LoginUserUseCase';
 import { LogoutUserUseCase } from '../use-cases/LogoutUserUseCase';
 import { MarkAllNotificationsReadUseCase } from '../use-cases/MarkAllNotificationsReadUseCase';
 import { MarkNotificationReadUseCase } from '../use-cases/MarkNotificationReadUseCase';
 import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
+import { RegisterUserUseCase } from '../use-cases/RegisterUserUseCase';
 import { ReportIssueUseCase } from '../use-cases/ReportIssueUseCase';
 import { ResolveIssueUseCase } from '../use-cases/ResolveIssueUseCase';
 import { VoteIssueUseCase } from '../use-cases/VoteIssueUseCase';
@@ -44,6 +48,10 @@ class ServiceContainer {
     const notificationRepository = RepositoryFactory.createNotificationRepository({
       engine: 'mongo',
     });
+    const municipalityAccessRequestRepository =
+      RepositoryFactory.createMunicipalityAccessRequestRepository({
+        engine: 'mongo',
+      });
 
     // 2. Instantiating Infrastructure / Event Bus / Providers
     const clock = new SystemClock();
@@ -86,6 +94,18 @@ class ServiceContainer {
       notificationService
     );
     const deleteNotificationUseCase = new DeleteNotificationUseCase(notificationService);
+    const registerUserUseCase = new RegisterUserUseCase(userService, userRepository);
+    const createMunicipalityAccessRequestUseCase = new CreateMunicipalityAccessRequestUseCase(
+      municipalityAccessRequestRepository
+    );
+    const listMunicipalityAccessRequestsUseCase = new ListMunicipalityAccessRequestsUseCase(
+      municipalityAccessRequestRepository
+    );
+    const approveMunicipalityAccessRequestUseCase = new ApproveMunicipalityAccessRequestUseCase(
+      municipalityAccessRequestRepository,
+      userRepository,
+      userService
+    );
 
     // 5. Registering in the container
     this.instances.set('userRepository', userRepository);
@@ -119,6 +139,20 @@ class ServiceContainer {
     this.instances.set(MarkNotificationReadUseCase, markNotificationReadUseCase);
     this.instances.set(MarkAllNotificationsReadUseCase, markAllNotificationsReadUseCase);
     this.instances.set(DeleteNotificationUseCase, deleteNotificationUseCase);
+    this.instances.set('municipalityAccessRequestRepository', municipalityAccessRequestRepository);
+    this.instances.set(RegisterUserUseCase, registerUserUseCase);
+    this.instances.set(
+      CreateMunicipalityAccessRequestUseCase,
+      createMunicipalityAccessRequestUseCase
+    );
+    this.instances.set(
+      ListMunicipalityAccessRequestsUseCase,
+      listMunicipalityAccessRequestsUseCase
+    );
+    this.instances.set(
+      ApproveMunicipalityAccessRequestUseCase,
+      approveMunicipalityAccessRequestUseCase
+    );
   }
 
   public resolve<T>(key: any): T {

@@ -9,9 +9,15 @@ export interface IUser extends Document {
   points: number;
   issues_reported: number;
   achievements?: Array<{ id: string; unlockedAt: Date; progress?: number }>;
-  savedLocations?: Array<{ type: 'home' | 'office' | 'university' | 'custom'; address: string; coordinates: [number, number] }>;
+  savedLocations?: Array<{
+    type: 'home' | 'office' | 'university' | 'custom';
+    address: string;
+    coordinates: [number, number];
+  }>;
   createdAt: Date;
   updatedAt: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -47,6 +53,8 @@ const UserSchema = new Schema<IUser>(
       ],
       default: [],
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

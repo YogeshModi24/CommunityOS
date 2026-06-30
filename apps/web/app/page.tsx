@@ -95,7 +95,7 @@ export default function LandingPage() {
             </GradientButton>
           </Link>
           <Link
-            href="/login"
+            href="/login?type=municipality"
             className="w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen rounded-xl"
             aria-label="Municipality Sign In"
           >

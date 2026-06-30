@@ -1,0 +1,198 @@
+import { Result } from '@community-os/utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
+import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
+import { ListMunicipalityAccessRequestsUseCase } from '../use-cases/ListMunicipalityAccessRequestsUseCase';
+import { RegisterUserUseCase } from '../use-cases/RegisterUserUseCase';
+
+const mockUserRepo = {
+  findByEmail: vi.fn(),
+  create: vi.fn(),
+};
+
+const mockUserService = {
+  createUser: vi.fn(),
+};
+
+const mockRequestRepo = {
+  findById: vi.fn(),
+  findByEmail: vi.fn(),
+  findPendingByEmail: vi.fn(),
+  listAll: vi.fn(),
+  create: vi.fn(),
+  updateStatus: vi.fn(),
+};
+
+describe('Registration & Access Requests Use Cases', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('RegisterUserUseCase', () => {
+    it('should register a new citizen user successfully and hash password', async () => {
+      mockUserRepo.findByEmail.mockResolvedValue(null);
+      mockUserService.createUser.mockResolvedValue(
+        Result.ok({ id: 'user-1', name: 'Alice', role: 'citizen' })
+      );
+
+      const useCase = new RegisterUserUseCase(mockUserService as any, mockUserRepo as any);
+      const result = await useCase.execute({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: 'securePassword123',
+        ward: 'Ward 4',
+      });
+
+      expect(result.isSuccess).toBe(true);
+      expect(mockUserRepo.findByEmail).toHaveBeenCalledWith('alice@example.com');
+      expect(mockUserService.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Alice',
+          email: 'alice@example.com',
+          role: 'citizen',
+          ward: 'Ward 4',
+        })
+      );
+    });
+
+    it('should fail if email is already registered', async () => {
+      mockUserRepo.findByEmail.mockResolvedValue({ id: 'user-1', email: 'alice@example.com' });
+
+      const useCase = new RegisterUserUseCase(mockUserService as any, mockUserRepo as any);
+      const result = await useCase.execute({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: 'securePassword123',
+      });
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Email is already registered');
+    });
+  });
+
+  describe('CreateMunicipalityAccessRequestUseCase', () => {
+    it('should submit a request successfully', async () => {
+      mockRequestRepo.findPendingByEmail.mockResolvedValue(null);
+      mockRequestRepo.create.mockResolvedValue({
+        id: 'req-1',
+        name: 'Bob',
+        email: 'bob@city.gov',
+        ward: 'Sanitation Dept',
+        status: 'pending',
+      });
+
+      const useCase = new CreateMunicipalityAccessRequestUseCase(mockRequestRepo as any);
+      const result = await useCase.execute({
+        name: 'Bob',
+        email: 'bob@city.gov',
+        ward: 'Sanitation Dept',
+        message: 'Requesting access',
+      });
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.status).toBe('pending');
+      expect(mockRequestRepo.create).toHaveBeenCalledWith({
+        name: 'Bob',
+        email: 'bob@city.gov',
+        ward: 'Sanitation Dept',
+        message: 'Requesting access',
+        status: 'pending',
+      });
+    });
+
+    it('should fail if pending request already exists', async () => {
+      mockRequestRepo.findPendingByEmail.mockResolvedValue({ id: 'req-1' });
+
+      const useCase = new CreateMunicipalityAccessRequestUseCase(mockRequestRepo as any);
+      const result = await useCase.execute({
+        name: 'Bob',
+        email: 'bob@city.gov',
+        ward: 'Sanitation Dept',
+      });
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('A pending access request already exists for this email address.');
+    });
+  });
+
+  describe('ListMunicipalityAccessRequestsUseCase', () => {
+    it('should list all requests', async () => {
+      mockRequestRepo.listAll.mockResolvedValue([{ id: 'req-1' }, { id: 'req-2' }]);
+
+      const useCase = new ListMunicipalityAccessRequestsUseCase(mockRequestRepo as any);
+      const result = await useCase.execute();
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.length).toBe(2);
+    });
+  });
+
+  describe('ApproveMunicipalityAccessRequestUseCase', () => {
+    it('should approve request, create user with locked password, and return setup token', async () => {
+      const request = {
+        id: 'req-1',
+        name: 'Bob',
+        email: 'bob@city.gov',
+        ward: 'Sanitation Dept',
+        status: 'pending',
+      };
+      mockRequestRepo.findById.mockResolvedValue(request);
+      mockUserRepo.findByEmail.mockResolvedValue(null);
+      mockUserService.createUser.mockResolvedValue(
+        Result.ok({ id: 'user-2', name: 'Bob', role: 'municipality' })
+      );
+
+      const useCase = new ApproveMunicipalityAccessRequestUseCase(
+        mockRequestRepo as any,
+        mockUserRepo as any,
+        mockUserService as any
+      );
+      const result = await useCase.execute('req-1');
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.setupToken).toBeDefined();
+      expect(mockRequestRepo.updateStatus).toHaveBeenCalledWith('req-1', 'approved');
+      expect(mockUserService.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Bob',
+          email: 'bob@city.gov',
+          role: 'municipality',
+          ward: 'Sanitation Dept',
+          resetPasswordToken: expect.any(String),
+          resetPasswordExpires: expect.any(Date),
+        })
+      );
+    });
+
+    it('should fail if request not found', async () => {
+      mockRequestRepo.findById.mockResolvedValue(null);
+
+      const useCase = new ApproveMunicipalityAccessRequestUseCase(
+        mockRequestRepo as any,
+        mockUserRepo as any,
+        mockUserService as any
+      );
+      const result = await useCase.execute('invalid-id');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Access request not found.');
+    });
+
+    it('should fail if request is already approved', async () => {
+      mockRequestRepo.findById.mockResolvedValue({ id: 'req-1', status: 'approved' });
+
+      const useCase = new ApproveMunicipalityAccessRequestUseCase(
+        mockRequestRepo as any,
+        mockUserRepo as any,
+        mockUserService as any
+      );
+      const result = await useCase.execute('req-1');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(
+        "Access request cannot be approved because its status is 'approved'."
+      );
+    });
+  });
+});

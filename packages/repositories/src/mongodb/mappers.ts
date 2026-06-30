@@ -1,4 +1,11 @@
-import { Issue, Notification, PopulatedReporter, User, UserSession } from '@community-os/types';
+import {
+  Issue,
+  MunicipalityAccessRequest,
+  Notification,
+  PopulatedReporter,
+  User,
+  UserSession,
+} from '@community-os/types';
 
 export function mapMongoUser(doc: any): User {
   if (!doc) return null as any;
@@ -23,6 +30,8 @@ export function mapMongoUser(doc: any): User {
     })),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
+    resetPasswordToken: doc.resetPasswordToken,
+    resetPasswordExpires: doc.resetPasswordExpires,
   };
 }
 
@@ -124,5 +133,19 @@ export function mapMongoNotification(doc: any): Notification {
     read: doc.read ?? false,
     createdAt: doc.createdAt,
     readAt: doc.readAt,
+  };
+}
+
+export function mapMongoMunicipalityAccessRequest(doc: any): MunicipalityAccessRequest {
+  if (!doc) return null as any;
+  return {
+    id: doc._id ? doc._id.toString() : '',
+    name: doc.name,
+    email: doc.email,
+    ward: doc.ward,
+    message: doc.message,
+    status: doc.status,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
   };
 }

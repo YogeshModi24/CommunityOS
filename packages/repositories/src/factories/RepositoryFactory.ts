@@ -1,4 +1,5 @@
 import { IIssueRepository } from '../interfaces/IIssueRepository';
+import { IMunicipalityAccessRequestRepository } from '../interfaces/IMunicipalityAccessRequestRepository';
 import { INotificationRepository } from '../interfaces/INotificationRepository';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { IUserSessionRepository } from '../interfaces/IUserSessionRepository';
@@ -44,6 +45,19 @@ export class RepositoryFactory {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { MongoNotificationRepository } = require('../mongodb/MongoNotificationRepository');
       return new MongoNotificationRepository();
+    }
+    throw new Error(`Unsupported repository engine: ${options.engine}`);
+  }
+
+  static createMunicipalityAccessRequestRepository(
+    options: RepositoryFactoryOptions
+  ): IMunicipalityAccessRequestRepository {
+    if (options.engine === 'mongo') {
+      const {
+        MongoMunicipalityAccessRequestRepository,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+      } = require('../mongodb/MongoMunicipalityAccessRequestRepository');
+      return new MongoMunicipalityAccessRequestRepository();
     }
     throw new Error(`Unsupported repository engine: ${options.engine}`);
   }

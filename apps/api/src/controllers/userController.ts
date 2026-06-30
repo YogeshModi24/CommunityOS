@@ -1,17 +1,25 @@
 import { authConfig, cookieOptions } from '@community-os/config';
 import { ValidationError } from '@community-os/errors';
 import { ClientMetaDTO } from '@community-os/types';
-import { loginSchema } from '@community-os/validation';
+import {
+  loginSchema,
+  municipalityAccessRequestSchema,
+  registerSchema,
+} from '@community-os/validation';
 import { NextFunction, Request, Response } from 'express';
 
 import { container } from '../infra/container';
 import { AuthRequest } from '../middleware/auth';
 import { IUserService } from '../services/contracts/IUserService';
+import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
+import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
 import { GetCitizenInsightsUseCase } from '../use-cases/GetCitizenInsightsUseCase';
 import { GetDashboardDataUseCase } from '../use-cases/GetDashboardDataUseCase';
+import { ListMunicipalityAccessRequestsUseCase } from '../use-cases/ListMunicipalityAccessRequestsUseCase';
 import { LoginUserUseCase } from '../use-cases/LoginUserUseCase';
 import { LogoutUserUseCase } from '../use-cases/LogoutUserUseCase';
 import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
+import { RegisterUserUseCase } from '../use-cases/RegisterUserUseCase';
 
 function getClientMeta(req: Request): ClientMetaDTO {
   const userAgent = req.headers['user-agent'] || '';
@@ -222,6 +230,86 @@ export async function getCitizenInsights(
     }
     const useCase = container.resolve<GetCitizenInsightsUseCase>(GetCitizenInsightsUseCase);
     const result = await useCase.execute(req.userId);
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/users/register
+export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const validatedData = registerSchema.parse(req.body);
+    const useCase = container.resolve<RegisterUserUseCase>(RegisterUserUseCase);
+    const result = await useCase.execute(validatedData);
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.status(201).json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/users/municipality-request
+export async function requestMunicipalityAccess(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const validatedData = municipalityAccessRequestSchema.parse(req.body);
+    const useCase = container.resolve<CreateMunicipalityAccessRequestUseCase>(
+      CreateMunicipalityAccessRequestUseCase
+    );
+    const result = await useCase.execute(validatedData);
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.status(201).json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/users/municipality-requests
+export async function listMunicipalityRequests(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const useCase = container.resolve<ListMunicipalityAccessRequestsUseCase>(
+      ListMunicipalityAccessRequestsUseCase
+    );
+    const result = await useCase.execute();
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/users/municipality-requests/:id/approve
+export async function approveMunicipalityRequest(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      throw new ValidationError('Access request ID is required');
+    }
+    const useCase = container.resolve<ApproveMunicipalityAccessRequestUseCase>(
+      ApproveMunicipalityAccessRequestUseCase
+    );
+    const result = await useCase.execute(id);
     if (result.isFailure) {
       throw new ValidationError(result.error);
     }

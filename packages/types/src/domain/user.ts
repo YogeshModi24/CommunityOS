@@ -28,6 +28,8 @@ export interface User {
   };
   createdAt: Date;
   updatedAt: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 export interface DeviceInfo {
@@ -53,4 +55,15 @@ export interface UserSession {
   expiresAt: Date;
   revokedAt?: Date;
   revokedReason?: string;
+}
+
+export interface MunicipalityAccessRequest {
+  id: string;
+  name: string;
+  email: string;
+  ward: string;
+  message?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Date;
+  updatedAt: Date;
 }

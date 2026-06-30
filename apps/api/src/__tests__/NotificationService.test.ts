@@ -75,7 +75,7 @@ describe('NotificationService', () => {
       expect(mockMetrics.increment).toHaveBeenCalledWith('notification.created');
       expect(mockEventBus.publish).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'NotificationCreated',
+          type: 'NotificationCreated',
           payload: expect.objectContaining({
             userId,
             title: 'Test Notification',
@@ -98,7 +98,7 @@ describe('NotificationService', () => {
       expect(mockMetrics.increment).toHaveBeenCalledWith('notification.read');
       expect(mockEventBus.publish).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'NotificationRead',
+          type: 'NotificationRead',
           payload: { notificationId: 'notif-1', userId },
         })
       );
@@ -146,7 +146,7 @@ describe('NotificationService', () => {
       expect(mockMetrics.increment).toHaveBeenCalledWith('notification.deleted');
       expect(mockEventBus.publish).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'NotificationDeleted',
+          type: 'NotificationDeleted',
           payload: { notificationId: 'notif-1', userId },
         })
       );
