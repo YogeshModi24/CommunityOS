@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { mapMongoUser } from './mappers';
+import IssueMongoose from './models/Issue';
 import UserMongoose from './models/User';
 
 export class MongoUserRepository implements IUserRepository {
@@ -73,6 +74,33 @@ export class MongoUserRepository implements IUserRepository {
   }
 
   async getDashboardProjection(userId: string): Promise<any> {
+    const user = await UserMongoose.findById(userId).lean();
+    if (!user) {
+      return null;
+    }
+
+    let issueMatch: any = { reporter_id: new Types.ObjectId(userId) };
+    let wardFilterApplied = false;
+    let noIssuesForWard = false;
+
+    if (user.role === 'admin') {
+      issueMatch = {};
+    } else if (user.role === 'municipality' || user.role === 'authority') {
+      if (user.ward) {
+        const count = await IssueMongoose.countDocuments({ ward: user.ward });
+        if (count > 0) {
+          issueMatch = { ward: user.ward };
+          wardFilterApplied = true;
+        } else {
+          // If no issues match the ward, fallback to showing all issues but set a flag
+          issueMatch = {};
+          noIssuesForWard = true;
+        }
+      } else {
+        issueMatch = {};
+      }
+    }
+
     const pipeline = [
       {
         $facet: {
@@ -81,8 +109,7 @@ export class MongoUserRepository implements IUserRepository {
             {
               $lookup: {
                 from: 'issues',
-                localField: '_id',
-                foreignField: 'reporter_id',
+                pipeline: [{ $match: issueMatch }],
                 as: 'userIssues',
               },
             },
@@ -168,6 +195,8 @@ export class MongoUserRepository implements IUserRepository {
       totalReports: result.totalReports ?? 0,
       resolvedReports: result.resolvedReports ?? 0,
       pendingReports: result.pendingReports ?? 0,
+      wardFilterApplied,
+      noIssuesForWard,
       recentActivity: (result.recentActivity || []).map((issue: any) => ({
         id: issue._id.toString(),
         title: issue.title,

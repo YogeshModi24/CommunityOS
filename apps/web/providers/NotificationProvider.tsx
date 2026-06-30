@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 
 import { useSocket } from '@/hooks/useSocket';
 import { api } from '@/lib/api';
@@ -21,6 +21,7 @@ interface NotificationState {
   unreadCount: number;
   loading: boolean;
   error: string | null;
+  isCenterOpen: boolean;
 }
 
 type NotificationAction =
@@ -29,7 +30,8 @@ type NotificationAction =
   | { type: 'FETCH_ERROR'; payload: string }
   | { type: 'NEW_NOTIFICATION'; payload: Notification }
   | { type: 'MARK_READ'; payload: string }
-  | { type: 'MARK_ALL_READ' };
+  | { type: 'MARK_ALL_READ' }
+  | { type: 'SET_CENTER_OPEN'; payload: boolean };
 
 // --- Initial State ---
 const initialState: NotificationState = {
@@ -37,10 +39,14 @@ const initialState: NotificationState = {
   unreadCount: 0,
   loading: true,
   error: null,
+  isCenterOpen: false,
 };
 
 // --- Reducer ---
-function notificationReducer(state: NotificationState, action: NotificationAction): NotificationState {
+function notificationReducer(
+  state: NotificationState,
+  action: NotificationAction
+): NotificationState {
   switch (action.type) {
     case 'FETCH_START':
       return { ...state, loading: true, error: null };
@@ -73,6 +79,11 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         notifications: state.notifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
       };
+    case 'SET_CENTER_OPEN':
+      return {
+        ...state,
+        isCenterOpen: action.payload,
+      };
     default:
       return state;
   }
@@ -96,7 +107,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'FETCH_START' });
     try {
       const res = await api.get('/api/notifications');
-      const unreadRes = await api.get('/api/notifications/unread');
+      const unreadRes = await api.get('/api/notifications/unread-count');
       dispatch({
         type: 'FETCH_SUCCESS',
         payload: {
@@ -142,7 +153,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const markAllAsRead = async () => {
     try {
-      await api.post('/api/notifications/mark-all-read');
+      await api.post('/api/notifications/read-all');
       dispatch({ type: 'MARK_ALL_READ' });
     } catch (err) {
       console.error('Failed to mark all notifications as read', err);

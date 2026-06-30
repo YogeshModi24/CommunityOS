@@ -4,6 +4,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 import { StatusTimeline } from '@/components/StatusTimeline';
@@ -11,9 +12,75 @@ import { Avatar, CategoryBadge, Skeleton, StatusBadge } from '@/components/ui/pr
 import { api } from '@/lib/api';
 
 export default function IssueDetailPage({ params }: { params: { id: string } }) {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   const [loading, setLoading] = useState(true);
   const [issue, setIssue] = useState<any>(null);
   const [voting, setVoting] = useState(false);
+
+  const [assignDept, setAssignDept] = useState('water_sewage');
+  const [dueDate, setDueDate] = useState('');
+  const [issueStatus, setIssueStatus] = useState('open');
+  const [statusNote, setStatusNote] = useState('');
+  const [dispatching, setDispatching] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  // Set initial status when issue loads
+  useEffect(() => {
+    if (issue) {
+      setIssueStatus(issue.status);
+      if (issue.assignment?.department) {
+        setAssignDept(issue.assignment.department);
+      }
+      if (issue.assignment?.dueDate) {
+        setDueDate(new Date(issue.assignment.dueDate).toISOString().split('T')[0]);
+      }
+    }
+  }, [issue]);
+
+  const handleAssign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!issue || dispatching) return;
+    setDispatching(true);
+    try {
+      const res = await api.post(`/api/issues/${issue.id}/assign`, {
+        department: assignDept,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+      });
+      if (res.data?.success) {
+        setIssue(res.data.data);
+        alert('Issue dispatched successfully!');
+      }
+    } catch (err) {
+      console.error('Failed to assign issue', err);
+      alert('Error updating issue assignment');
+    } finally {
+      setDispatching(false);
+    }
+  };
+
+  const handleUpdateStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!issue || updatingStatus) return;
+    setUpdatingStatus(true);
+    try {
+      const res = await api.patch(`/api/issues/${issue.id}/status`, {
+        status: issueStatus,
+        note: statusNote,
+      });
+      if (res.data?.success) {
+        setIssue(res.data.data);
+        setStatusNote('');
+        alert('Status updated successfully!');
+      }
+    } catch (err) {
+      console.error('Failed to update status', err);
+      alert('Error updating status');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -280,32 +347,141 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
                       Dispatch & Assignment
                     </h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="bg-layer2 p-4 rounded-xl border border-border">
-                      <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">Assigned Department</div>
-                      <div className="text-white font-mono font-bold capitalize">{issue.assignment.department.replace(/_/g, ' ')}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">
+                        Assigned Department
+                      </div>
+                      <div className="text-white font-mono font-bold capitalize">
+                        {issue.assignment.department.replace(/_/g, ' ')}
+                      </div>
                     </div>
-                    
+
                     {issue.assignment.assignedToName && (
                       <div className="bg-layer2 p-4 rounded-xl border border-border">
-                        <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">Assigned Personnel</div>
+                        <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">
+                          Assigned Personnel
+                        </div>
                         <div className="text-white font-bold flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[16px] text-text-secondary">badge</span>
+                          <span className="material-symbols-outlined text-[16px] text-text-secondary">
+                            badge
+                          </span>
                           {issue.assignment.assignedToName}
                         </div>
                       </div>
                     )}
-                    
+
                     {issue.assignment.dueDate && (
                       <div className="bg-layer2 p-4 rounded-xl border border-border">
-                        <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">Target SLA / Due Date</div>
+                        <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mb-1">
+                          Target SLA / Due Date
+                        </div>
                         <div className="text-warning font-mono font-bold flex items-center gap-2">
                           <span className="material-symbols-outlined text-[16px]">timer</span>
                           {new Date(issue.assignment.dueDate).toLocaleDateString()}
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Operations & Dispatch Control Panel (Officials and Admins only) */}
+            {(user?.role === 'admin' ||
+              user?.role === 'municipality' ||
+              user?.role === 'authority') && (
+              <div className="bg-layer1 p-8 rounded-[32px] border border-accent/30 shadow-[0_0_40px_rgba(245,158,11,0.1)] relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent pointer-events-none opacity-50" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6 text-accent">
+                    <span className="material-symbols-outlined text-[24px]">build</span>
+                    <h3 className="font-bold text-sm tracking-widest uppercase">
+                      Operations Dispatch
+                    </h3>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Assignment Sub-form */}
+                    <form
+                      onSubmit={handleAssign}
+                      className="space-y-4 pt-2 border-t border-white/5"
+                    >
+                      <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                        Assign Department
+                      </div>
+                      <div>
+                        <select
+                          value={assignDept}
+                          onChange={(e) => setAssignDept(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent capitalize"
+                        >
+                          <option value="water_sewage">Water & Sewage</option>
+                          <option value="road_infrastructure">Roads & Infrastructure</option>
+                          <option value="sanitation">Sanitation</option>
+                          <option value="public_lighting">Public Lighting</option>
+                          <option value="encroachment">Encroachment Control</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
+                          SLA Due Date
+                        </label>
+                        <input
+                          type="date"
+                          value={dueDate}
+                          onChange={(e) => setDueDate(e.target.value)}
+                          className="w-full px-4 py-2 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={dispatching}
+                        className="w-full py-2.5 rounded-xl bg-accent text-bg hover:bg-amber-500 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                      >
+                        {dispatching ? 'Assigning...' : 'Dispatch / Assign'}
+                      </button>
+                    </form>
+
+                    {/* Status Update Sub-form */}
+                    <form
+                      onSubmit={handleUpdateStatus}
+                      className="space-y-4 pt-6 border-t border-white/5"
+                    >
+                      <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                        Update Status
+                      </div>
+                      <div>
+                        <select
+                          value={issueStatus}
+                          onChange={(e) => setIssueStatus(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-layer2 border border-border rounded-xl text-white text-sm focus:outline-none focus:border-accent capitalize"
+                        >
+                          <option value="open">Open</option>
+                          <option value="verified">Verified</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                        </select>
+                      </div>
+                      <div>
+                        <textarea
+                          placeholder="Add progress/resolution note..."
+                          value={statusNote}
+                          onChange={(e) => setStatusNote(e.target.value)}
+                          rows={2}
+                          className="w-full px-4 py-2 bg-layer2 border border-border rounded-xl text-white text-sm placeholder:text-text-tertiary focus:outline-none focus:border-accent resize-none"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={updatingStatus}
+                        className="w-full py-2.5 rounded-xl bg-white text-bg hover:bg-gray-100 font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 border border-white/10"
+                      >
+                        {updatingStatus ? 'Updating...' : 'Update Status'}
+                      </button>
+                    </form>
                   </div>
                 </div>
               </div>

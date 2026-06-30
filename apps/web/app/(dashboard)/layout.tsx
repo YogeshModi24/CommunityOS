@@ -9,8 +9,9 @@ import { CommandPalette } from '@/components/layout/CommandPalette';
 import { FloatingActionButton, MobileNav } from '@/components/layout/MobileNav';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { NotificationCenter } from '@/components/NotificationCenter';
 import { CitizenProvider } from '@/providers/CitizenProvider';
-import { NotificationProvider } from '@/providers/NotificationProvider';
+import { NotificationProvider, useNotifications } from '@/providers/NotificationProvider';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -78,11 +79,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <CommandPalette />
 
+          <NotificationCenterWrapper />
+
           {/* Mobile Navigation */}
           <FloatingActionButton />
           <MobileNav />
         </div>
       </NotificationProvider>
     </CitizenProvider>
+  );
+}
+
+function NotificationCenterWrapper() {
+  const {
+    state: { isCenterOpen },
+    dispatch,
+  } = useNotifications();
+  return (
+    <NotificationCenter
+      isOpen={isCenterOpen}
+      onClose={() => dispatch({ type: 'SET_CENTER_OPEN', payload: false })}
+    />
   );
 }

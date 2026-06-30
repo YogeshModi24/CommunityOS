@@ -80,52 +80,121 @@ export function DashboardHero({ user, xp, level }: DashboardHeroProps) {
             transition={{ delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <Link href="/report">
-              <GradientButton className="w-full sm:w-auto">
-                <ShieldAlert className="w-4 h-4 mr-2" />
-                Report New Issue
-              </GradientButton>
-            </Link>
-            <Link href="/map">
-              <GradientButton variant="glass" className="w-full sm:w-auto">
-                <MapIcon className="w-4 h-4 mr-2" />
-                Open Live Map
-              </GradientButton>
-            </Link>
+            {user?.role === 'admin' ? (
+              <>
+                <Link href="/admin/municipality-requests">
+                  <GradientButton className="w-full sm:w-auto">
+                    <ShieldAlert className="w-4 h-4 mr-2" />
+                    Clearance Panel
+                  </GradientButton>
+                </Link>
+                <Link href="/map">
+                  <GradientButton variant="glass" className="w-full sm:w-auto">
+                    <MapIcon className="w-4 h-4 mr-2" />
+                    Open Live Map
+                  </GradientButton>
+                </Link>
+              </>
+            ) : user?.role === 'municipality' || user?.role === 'authority' ? (
+              <>
+                <Link href="/feed">
+                  <GradientButton className="w-full sm:w-auto">
+                    <ShieldAlert className="w-4 h-4 mr-2" />
+                    Dispatch Queue
+                  </GradientButton>
+                </Link>
+                <Link href="/map">
+                  <GradientButton variant="glass" className="w-full sm:w-auto">
+                    <MapIcon className="w-4 h-4 mr-2" />
+                    Open Live Map
+                  </GradientButton>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/report">
+                  <GradientButton className="w-full sm:w-auto">
+                    <ShieldAlert className="w-4 h-4 mr-2" />
+                    Report New Issue
+                  </GradientButton>
+                </Link>
+                <Link href="/map">
+                  <GradientButton variant="glass" className="w-full sm:w-auto">
+                    <MapIcon className="w-4 h-4 mr-2" />
+                    Open Live Map
+                  </GradientButton>
+                </Link>
+              </>
+            )}
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, type: 'spring', stiffness: 100 }}
-          className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 min-w-[300px]"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <Avatar name={user?.name || 'User'} size={56} className="ring-2 ring-primary/50" />
-            <div>
-              <div className="text-text-primary font-bold">{user?.name || 'User'}</div>
-              <div className="text-text-tertiary text-xs uppercase tracking-wider">
-                {user?.ward || 'City Resident'}
+        {user?.role === 'admin' || user?.role === 'municipality' || user?.role === 'authority' ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, type: 'spring', stiffness: 100 }}
+            className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 min-w-[300px] flex flex-col justify-between"
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <Avatar name={user?.name || 'Officer'} size={56} className="ring-2 ring-accent/50" />
+              <div>
+                <div className="text-text-primary font-bold">{user?.name || 'Officer'}</div>
+                <div className="text-accent text-[10px] font-bold uppercase tracking-wider font-mono mt-0.5">
+                  {user?.role === 'admin' ? 'System Administrator' : 'Municipality Official'}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div>
-            <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-text-tertiary mb-2">
-              <span>Level {level}</span>
-              <span>{xpProgress} / 1000 XP</span>
+            <div className="border-t border-white/5 pt-4 space-y-2.5 text-xs font-medium">
+              <div className="flex justify-between text-text-secondary">
+                <span>Jurisdiction:</span>
+                <span className="font-bold text-white uppercase tracking-wider">
+                  {user?.ward || 'City Wide'}
+                </span>
+              </div>
+              <div className="flex justify-between text-text-secondary">
+                <span>Access Status:</span>
+                <span className="text-success font-bold flex items-center gap-1.5 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                  AUTHORIZED
+                </span>
+              </div>
             </div>
-            <div className="w-full h-2 rounded-full bg-black/40 overflow-hidden border border-white/5 relative">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 1.5, ease: 'easeOut', delay: 0.6 }}
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-accent rounded-full shadow-glow-blue"
-              />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, type: 'spring', stiffness: 100 }}
+            className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 min-w-[300px]"
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <Avatar name={user?.name || 'User'} size={56} className="ring-2 ring-primary/50" />
+              <div>
+                <div className="text-text-primary font-bold">{user?.name || 'User'}</div>
+                <div className="text-text-tertiary text-xs uppercase tracking-wider">
+                  {user?.ward || 'City Resident'}
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
+
+            <div>
+              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-text-tertiary mb-2">
+                <span>Level {level}</span>
+                <span>{xpProgress} / 1000 XP</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-black/40 overflow-hidden border border-white/5 relative">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 1.5, ease: 'easeOut', delay: 0.6 }}
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-accent rounded-full shadow-glow-blue"
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.section>
   );

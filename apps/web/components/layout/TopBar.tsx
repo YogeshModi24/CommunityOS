@@ -2,17 +2,15 @@
 
 import { motion } from 'framer-motion';
 import { signOut } from 'next-auth/react';
-import { useState } from 'react';
 
-import { NotificationCenter } from '@/components/NotificationCenter';
 import { useSocket } from '@/hooks/useSocket';
 import { useNotifications } from '@/providers/NotificationProvider';
 
 export function TopBar({ pageTitle }: { pageTitle?: string }) {
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { isConnected } = useSocket({});
   const {
     state: { unreadCount },
+    dispatch,
   } = useNotifications();
 
   const handleLogout = async () => {
@@ -71,7 +69,7 @@ export function TopBar({ pageTitle }: { pageTitle?: string }) {
 
         {/* Notifications */}
         <button
-          onClick={() => setIsNotifOpen(true)}
+          onClick={() => dispatch({ type: 'SET_CENTER_OPEN', payload: true })}
           className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-text-secondary transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">notifications</span>
@@ -93,8 +91,6 @@ export function TopBar({ pageTitle }: { pageTitle?: string }) {
           <span className="material-symbols-outlined text-[20px]">logout</span>
         </button>
       </div>
-
-      <NotificationCenter isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </header>
   );
 }

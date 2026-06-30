@@ -272,6 +272,12 @@ export async function requestMunicipalityAccess(
     if (result.isFailure) {
       throw new ValidationError(result.error);
     }
+    const eventBus = container.resolve<any>('eventBus');
+    eventBus.publish({
+      type: 'MunicipalityRequestCreated',
+      payload: { requestId: result.value.id },
+      occurredAt: new Date(),
+    });
     res.status(201).json({ success: true, data: result.value });
   } catch (err) {
     next(err);
@@ -316,6 +322,12 @@ export async function approveMunicipalityRequest(
     if (result.isFailure) {
       throw new ValidationError(result.error);
     }
+    const eventBus = container.resolve<any>('eventBus');
+    eventBus.publish({
+      type: 'MunicipalityRequestApproved',
+      payload: { requestId: id },
+      occurredAt: new Date(),
+    });
     res.json({ success: true, data: result.value });
   } catch (err) {
     next(err);

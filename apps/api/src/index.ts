@@ -171,6 +171,9 @@ async function main(): Promise<void> {
       socket.join('Citizens');
     } else if (user.role === 'municipality' || user.role === 'authority' || user.role === 'admin') {
       socket.join('Municipality');
+      if (user.role === 'admin') {
+        socket.join('Admins');
+      }
       if (user.department) {
         socket.join(`Department:${user.department}`);
       }

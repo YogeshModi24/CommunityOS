@@ -56,7 +56,7 @@ export default function DashboardPage() {
           votes: 1,
           createdAt: payload.createdAt || new Date().toISOString(),
         };
-        
+
         return {
           ...prev,
           totalReports: prev.totalReports + 1,
@@ -71,9 +71,13 @@ export default function DashboardPage() {
         if (!prev) return prev;
         return {
           ...prev,
-          recentActivity: prev.recentActivity.map((issue: any) => 
-            issue.id === payload.issueId 
-              ? { ...issue, category: payload.category || issue.category, severity: payload.severity || issue.severity } 
+          recentActivity: prev.recentActivity.map((issue: any) =>
+            issue.id === payload.issueId
+              ? {
+                  ...issue,
+                  category: payload.category || issue.category,
+                  severity: payload.severity || issue.severity,
+                }
               : issue
           ),
         };
@@ -87,10 +91,8 @@ export default function DashboardPage() {
           ...prev,
           resolvedReports: prev.resolvedReports + 1,
           pendingReports: Math.max(0, prev.pendingReports - 1),
-          recentActivity: prev.recentActivity.map((issue: any) => 
-            issue.id === payload.issueId 
-              ? { ...issue, status: 'resolved' } 
-              : issue
+          recentActivity: prev.recentActivity.map((issue: any) =>
+            issue.id === payload.issueId ? { ...issue, status: 'resolved' } : issue
           ),
         };
       });
@@ -101,10 +103,8 @@ export default function DashboardPage() {
         if (!prev) return prev;
         return {
           ...prev,
-          recentActivity: prev.recentActivity.map((issue: any) => 
-            issue.id === payload.issueId 
-              ? { ...issue, votes: payload.newVoteCount } 
-              : issue
+          recentActivity: prev.recentActivity.map((issue: any) =>
+            issue.id === payload.issueId ? { ...issue, votes: payload.newVoteCount } : issue
           ),
         };
       });
@@ -115,10 +115,8 @@ export default function DashboardPage() {
         if (!prev) return prev;
         return {
           ...prev,
-          recentActivity: prev.recentActivity.map((issue: any) => 
-            issue.id === payload.issueId 
-              ? { ...issue, votes: payload.newVoteCount } 
-              : issue
+          recentActivity: prev.recentActivity.map((issue: any) =>
+            issue.id === payload.issueId ? { ...issue, votes: payload.newVoteCount } : issue
           ),
         };
       });
@@ -157,11 +155,31 @@ export default function DashboardPage() {
   return (
     <div className="max-w-screen-2xl mx-auto w-full pt-4 font-body selection:bg-primary/30">
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 px-4">
-        
         {/* Main Content Column */}
-        <div className={user?.role === 'admin' || user?.role === 'municipality' ? "xl:col-span-3 space-y-8 pb-20 lg:pb-12" : "xl:col-span-4 space-y-8 pb-20 lg:pb-12"}>
+        <div
+          className={
+            user?.role === 'admin' || user?.role === 'municipality'
+              ? 'xl:col-span-3 space-y-8 pb-20 lg:pb-12'
+              : 'xl:col-span-4 space-y-8 pb-20 lg:pb-12'
+          }
+        >
           {/* 1. Mission Control Hero */}
           <DashboardHero user={user} xp={xp} level={level} />
+
+          {/* Ward Matching Warning Banner */}
+          {dashboardData?.noIssuesForWard && (
+            <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm flex items-start gap-4 shadow-xl">
+              <span className="material-symbols-outlined shrink-0 text-[24px]">info</span>
+              <div>
+                <div className="font-bold text-white text-base">
+                  No issues reported for your ward ({user?.ward})
+                </div>
+                <div className="mt-1 text-text-secondary">
+                  Showing a city-wide overview fallback so you can monitor other sectors.
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sync Status Header */}
           <div className="flex justify-between items-end border-b border-white/5 pb-2 px-1 mt-8 mb-4">
@@ -188,7 +206,10 @@ export default function DashboardPage() {
           {/* 3. Priority Workspace (Activity + Telemetry Overview) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <ActivityTimeline activities={dashboardData?.recentActivity || []} isLoading={loading} />
+              <ActivityTimeline
+                activities={dashboardData?.recentActivity || []}
+                isLoading={loading}
+              />
             </div>
             <div className="lg:col-span-2">
               <TelemetryPanel data={dashboardData} isLoading={loading} />
@@ -197,39 +218,91 @@ export default function DashboardPage() {
 
           {/* 4. Leaderboard & Quick Actions */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <h2 className="text-2xl font-display font-bold text-white mb-6">Rankings</h2>
-              <LeaderboardPreview leaderboard={dashboardData?.leaderboard || []} isLoading={loading} />
-            </div>
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-display font-bold text-white mb-6">Quick Actions</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <QuickActionCard
-                  title="Report Issue"
-                  description="Log a new infrastructure failure."
-                  icon={<ShieldAlert className="w-6 h-6" aria-hidden="true" />}
-                  href="/report"
-                  colorClass="text-accent border-accent/20 bg-accent/10"
-                  delay={0.1}
-                />
-                <QuickActionCard
-                  title="Community Feed"
-                  description="Browse and vote on issues."
-                  icon={<Radio className="w-6 h-6" aria-hidden="true" />}
-                  href="/feed"
-                  colorClass="text-primary border-primary/20 bg-primary/10"
-                  delay={0.2}
-                />
-                <QuickActionCard
-                  title="Live Telemetry"
-                  description="View real-time clustering analytics."
-                  icon={<Activity className="w-6 h-6" aria-hidden="true" />}
-                  href="/map"
-                  colorClass="text-success border-success/20 bg-success/10"
-                  delay={0.3}
-                />
+            {user?.role === 'admin' ||
+            user?.role === 'municipality' ||
+            user?.role === 'authority' ? (
+              <div className="lg:col-span-3">
+                <h2 className="text-2xl font-display font-bold text-white mb-6">
+                  Operational Actions
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {user?.role === 'admin' ? (
+                    <QuickActionCard
+                      title="Clearance Control"
+                      description="Manage and approve access requests."
+                      icon={<ShieldAlert className="w-6 h-6" aria-hidden="true" />}
+                      href="/admin/municipality-requests"
+                      colorClass="text-accent border-accent/20 bg-accent/10"
+                      delay={0.1}
+                    />
+                  ) : (
+                    <QuickActionCard
+                      title="Operations Dispatch"
+                      description="Browse and assign issues."
+                      icon={<ShieldAlert className="w-6 h-6" aria-hidden="true" />}
+                      href="/feed"
+                      colorClass="text-accent border-accent/20 bg-accent/10"
+                      delay={0.1}
+                    />
+                  )}
+                  <QuickActionCard
+                    title="Incident Feed"
+                    description="Browse and vote on issues."
+                    icon={<Radio className="w-6 h-6" aria-hidden="true" />}
+                    href="/feed"
+                    colorClass="text-primary border-primary/20 bg-primary/10"
+                    delay={0.2}
+                  />
+                  <QuickActionCard
+                    title="Live Telemetry"
+                    description="View real-time clustering analytics."
+                    icon={<Activity className="w-6 h-6" aria-hidden="true" />}
+                    href="/map"
+                    colorClass="text-success border-success/20 bg-success/10"
+                    delay={0.3}
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="lg:col-span-1">
+                  <h2 className="text-2xl font-display font-bold text-white mb-6">Rankings</h2>
+                  <LeaderboardPreview
+                    leaderboard={dashboardData?.leaderboard || []}
+                    isLoading={loading}
+                  />
+                </div>
+                <div className="lg:col-span-2">
+                  <h2 className="text-2xl font-display font-bold text-white mb-6">Quick Actions</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <QuickActionCard
+                      title="Report Issue"
+                      description="Log a new infrastructure failure."
+                      icon={<ShieldAlert className="w-6 h-6" aria-hidden="true" />}
+                      href="/report"
+                      colorClass="text-accent border-accent/20 bg-accent/10"
+                      delay={0.1}
+                    />
+                    <QuickActionCard
+                      title="Community Feed"
+                      description="Browse and vote on issues."
+                      icon={<Radio className="w-6 h-6" aria-hidden="true" />}
+                      href="/feed"
+                      colorClass="text-primary border-primary/20 bg-primary/10"
+                      delay={0.2}
+                    />
+                    <QuickActionCard
+                      title="Live Telemetry"
+                      description="View real-time clustering analytics."
+                      icon={<Activity className="w-6 h-6" aria-hidden="true" />}
+                      href="/map"
+                      colorClass="text-success border-success/20 bg-success/10"
+                      delay={0.3}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -241,7 +314,6 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

@@ -4,7 +4,10 @@ import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { useSocket } from '@/hooks/useSocket';
+import { api } from '@/lib/api';
 
 import { Avatar } from '../ui/primitives';
 
@@ -21,6 +24,39 @@ export function Sidebar({ user }: { user: any }) {
   const currentPath = pathname + searchStr;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return;
+
+    const fetchPending = async () => {
+      try {
+        const res = await api.get('/api/users/municipality-requests');
+        if (res.data?.success) {
+          const count = res.data.data.filter((r: any) => r.status === 'pending').length;
+          setPendingCount(count);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch pending clearance requests', err);
+      }
+    };
+
+    fetchPending();
+  }, [user]);
+
+  useSocket({
+    'municipality-request.created': () => {
+      if (user?.role === 'admin') {
+        setPendingCount((prev) => prev + 1);
+      }
+    },
+    'municipality-request.approved': () => {
+      if (user?.role === 'admin') {
+        setPendingCount((prev) => Math.max(0, prev - 1));
+      }
+    },
+  });
 
   return (
     <motion.aside
@@ -177,8 +213,18 @@ export function Sidebar({ user }: { user: any }) {
                 admin_panel_settings
               </span>
               {!isCollapsed && (
-                <span className="relative z-10 whitespace-nowrap tracking-wide">
-                  Clearance Control
+                <span className="relative z-10 whitespace-nowrap tracking-wide flex items-center justify-between w-full">
+                  <span>Clearance Control</span>
+                  {pendingCount > 0 && (
+                    <span className="ml-2 px-2 py-0.5 rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(244,63,94,0.5)] border border-rose-600 animate-pulse">
+                      {pendingCount}
+                    </span>
+                  )}
+                </span>
+              )}
+              {isCollapsed && pendingCount > 0 && (
+                <span className="absolute top-2 right-2 w-4 h-4 flex items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white border border-rose-600 shadow-[0_0_10px_rgba(244,63,94,0.5)] z-20">
+                  {pendingCount}
                 </span>
               )}
             </Link>

@@ -94,11 +94,26 @@ export function registerEventHandlers(eventBus: EventBus, io: Server, container:
         typeof issue.reporter_id === 'object' ? issue.reporter_id.id : issue.reporter_id;
 
       // Broadcast issue.updated.v1 for analysis completed
-      io.to('Citizens').emit(SocketEvents.ISSUE_UPDATED, { issueId, category, severity, department });
-      io.to('Municipality').emit(SocketEvents.ISSUE_UPDATED, { issueId, category, severity, department });
+      io.to('Citizens').emit(SocketEvents.ISSUE_UPDATED, {
+        issueId,
+        category,
+        severity,
+        department,
+      });
+      io.to('Municipality').emit(SocketEvents.ISSUE_UPDATED, {
+        issueId,
+        category,
+        severity,
+        department,
+      });
       io.to('Municipality').emit(SocketEvents.DASHBOARD_INVALIDATED, { reason: 'IssueAnalyzed' });
       if (department) {
-        io.to(`Department:${department}`).emit(SocketEvents.ISSUE_UPDATED, { issueId, category, severity, department });
+        io.to(`Department:${department}`).emit(SocketEvents.ISSUE_UPDATED, {
+          issueId,
+          category,
+          severity,
+          department,
+        });
       }
 
       if (reporterId) {
@@ -190,10 +205,35 @@ export function registerEventHandlers(eventBus: EventBus, io: Server, container:
 
   eventBus.subscribe('IssuePriorityUpdated', async (event: any) => {
     try {
-      io.to('Citizens').emit(SocketEvents.ISSUE_UPDATED, { issueId: event.payload.issueId, priorityScore: event.payload.priorityScore });
-      io.to('Municipality').emit(SocketEvents.ISSUE_UPDATED, { issueId: event.payload.issueId, priorityScore: event.payload.priorityScore });
+      io.to('Citizens').emit(SocketEvents.ISSUE_UPDATED, {
+        issueId: event.payload.issueId,
+        priorityScore: event.payload.priorityScore,
+      });
+      io.to('Municipality').emit(SocketEvents.ISSUE_UPDATED, {
+        issueId: event.payload.issueId,
+        priorityScore: event.payload.priorityScore,
+      });
     } catch (err) {
       logger.error('[EventHandler] Failed to process IssuePriorityUpdated event', err);
+    }
+  });
+
+  // Clearance Control Events
+  eventBus.subscribe('MunicipalityRequestCreated', (event: any) => {
+    try {
+      io.to('Admins').emit('municipality-request.created', event.payload);
+      logger.info('[SocketBroadcast] Emitted municipality-request.created to Admins');
+    } catch (err) {
+      logger.error('[SocketBroadcast] Failed to emit municipality-request.created', err);
+    }
+  });
+
+  eventBus.subscribe('MunicipalityRequestApproved', (event: any) => {
+    try {
+      io.to('Admins').emit('municipality-request.approved', event.payload);
+      logger.info('[SocketBroadcast] Emitted municipality-request.approved to Admins');
+    } catch (err) {
+      logger.error('[SocketBroadcast] Failed to emit municipality-request.approved', err);
     }
   });
 }
