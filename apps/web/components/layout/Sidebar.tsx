@@ -140,6 +140,49 @@ export function Sidebar({ user }: { user: any }) {
               </Link>
             );
           })}
+          {user?.role === 'admin' && (
+            <Link
+              href="/admin/municipality-requests"
+              className={clsx(
+                'flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold transition-all group relative overflow-hidden',
+                pathname === '/admin/municipality-requests'
+                  ? 'text-white'
+                  : 'text-text-secondary hover:text-white',
+                isCollapsed && 'justify-center'
+              )}
+            >
+              {pathname === '/admin/municipality-requests' && (
+                <motion.div
+                  layoutId="sidebar-active"
+                  className="absolute inset-0 bg-layer2 border border-border rounded-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-citizen rounded-r-full shadow-[0_0_10px_rgba(37,99,235,0.8)]" />
+                </motion.div>
+              )}
+              {pathname !== '/admin/municipality-requests' && (
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+              )}
+              <span
+                className="material-symbols-outlined text-[22px] relative z-10 transition-transform group-hover:scale-110"
+                style={
+                  pathname === '/admin/municipality-requests'
+                    ? { color: '#3b82f6', fontVariationSettings: "'FILL' 1" }
+                    : {}
+                }
+              >
+                admin_panel_settings
+              </span>
+              {!isCollapsed && (
+                <span className="relative z-10 whitespace-nowrap tracking-wide">
+                  Clearance Control
+                </span>
+              )}
+            </Link>
+          )}
         </div>
 
         {/* Shortcuts */}

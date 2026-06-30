@@ -10,11 +10,14 @@ export default auth((req: any) => {
   const isAuthPage = pathname.startsWith('/login');
 
   if (isAuthPage && isLoggedIn) {
-    const role = (req.auth as any)?.user?.role;
-    if (role === 'MUNICIPALITY' || role === 'municipality') {
-      return Response.redirect(new URL('/dashboard', nextUrl));
+    const hasType = nextUrl.searchParams.has('type');
+    if (!hasType) {
+      const role = (req.auth as any)?.user?.role;
+      if (role === 'MUNICIPALITY' || role === 'municipality') {
+        return Response.redirect(new URL('/dashboard', nextUrl));
+      }
+      return Response.redirect(new URL('/feed', nextUrl));
     }
-    return Response.redirect(new URL('/feed', nextUrl));
   }
 
   if (isProtectedRoute && !isLoggedIn) {

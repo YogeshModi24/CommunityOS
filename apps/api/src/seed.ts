@@ -23,6 +23,8 @@ async function seed(): Promise<void> {
   const rahulPassword = await bcrypt.hash('demo123', 10);
   const priyaPassword = await bcrypt.hash('demo123', 10);
 
+  const adminPassword = await bcrypt.hash('demo123', 10);
+
   const rahul = await userRepository.create({
     name: 'Rahul Sharma',
     email: 'rahul@demo.com',
@@ -47,7 +49,19 @@ async function seed(): Promise<void> {
     achievements: [],
   });
 
-  console.error(`[Seed] Created users: ${rahul.name}, ${priya.name}`);
+  const admin = await userRepository.create({
+    name: 'Admin User',
+    email: 'admin@demo.com',
+    password: adminPassword,
+    role: 'admin',
+    ward: 'Central Control',
+    points: 1000,
+    issues_reported: 0,
+    savedLocations: [],
+    achievements: [],
+  });
+
+  console.error(`[Seed] Created users: ${rahul.name}, ${priya.name}, ${admin.name}`);
 
   const issues = [
     {
@@ -249,8 +263,10 @@ async function seed(): Promise<void> {
   }
 
   console.error('[Seed] Created 8 issues');
-  console.error('[Seed] ✅ Done! Seeded 2 users and 8 issues around Bikaner');
-  console.error('[Seed] Login: rahul@demo.com / demo123  |  priya@demo.com / demo123');
+  console.error('[Seed] ✅ Done! Seeded 3 users and 8 issues around Bikaner');
+  console.error(
+    '[Seed] Login: rahul@demo.com / demo123  |  priya@demo.com / demo123  |  admin@demo.com / demo123'
+  );
 
   await mongoose.disconnect();
   process.exit(0);
