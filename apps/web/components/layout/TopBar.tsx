@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 
@@ -10,14 +9,14 @@ import { useSocket } from '@/hooks/useSocket';
 import { useNotifications } from '@/providers/NotificationProvider';
 
 export function TopBar({ pageTitle }: { pageTitle?: string }) {
-  const router = useRouter();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { isConnected } = useSocket({});
-  const { state: { unreadCount } } = useNotifications();
+  const {
+    state: { unreadCount },
+  } = useNotifications();
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
+    await signOut({ callbackUrl: '/login' });
   };
 
   return (
@@ -40,8 +39,14 @@ export function TopBar({ pageTitle }: { pageTitle?: string }) {
           </motion.div>
         )}
         <div className="flex items-center gap-2 px-2 py-1 bg-layer1 rounded-full border border-white/5 text-[10px] uppercase tracking-wider font-mono">
-          <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-danger'}`} />
-          {isConnected ? <span className="text-success">Live Sync</span> : <span className="text-danger">Offline</span>}
+          <span
+            className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-danger'}`}
+          />
+          {isConnected ? (
+            <span className="text-success">Live Sync</span>
+          ) : (
+            <span className="text-danger">Offline</span>
+          )}
         </div>
       </div>
 

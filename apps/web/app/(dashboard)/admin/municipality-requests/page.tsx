@@ -64,7 +64,8 @@ export default function MunicipalityRequestsPage() {
     if (sessionStatus === 'authenticated' && session?.user?.role === 'admin') {
       fetchRequests();
     }
-  }, [sessionStatus, session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus]);
 
   const handleApprove = async (id: string) => {
     setError('');

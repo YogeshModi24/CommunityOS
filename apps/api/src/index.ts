@@ -117,7 +117,14 @@ async function main(): Promise<void> {
 
   // BullMQ manages its own Redis connection via URL string
   io = new Server(httpServer, {
-    cors: { origin: env.CLIENT_URL, methods: ['GET', 'POST'], credentials: true },
+    cors: {
+      origin: (origin, callback) => {
+        // Dynamically allow any origin to connect, preventing CORS mismatch in preview or multiple domains
+        callback(null, true);
+      },
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
   });
 
   io.use((socket, next) => {
