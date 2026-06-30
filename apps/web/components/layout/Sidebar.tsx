@@ -32,7 +32,7 @@ export function Sidebar({ user }: { user: any }) {
     const fetchPending = async () => {
       try {
         const res = await api.get('/api/users/municipality-requests');
-        if (res.data?.success) {
+        if (res.data?.success && Array.isArray(res.data.data)) {
           const count = res.data.data.filter((r: any) => r.status === 'pending').length;
           setPendingCount(count);
         }

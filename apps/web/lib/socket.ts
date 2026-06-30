@@ -29,6 +29,14 @@ export function getSocket(token?: string): Socket {
       // eslint-disable-next-line no-console
       console.error('[Socket.io] Connection error:', err.message);
     });
+  } else if (token) {
+    const currentAuth = socket.auth as any;
+    if (!currentAuth || currentAuth.token !== token) {
+      socket.auth = { token };
+      if (socket.connected) {
+        socket.disconnect().connect();
+      }
+    }
   }
   return socket;
 }

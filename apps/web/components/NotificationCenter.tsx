@@ -10,7 +10,11 @@ import { useNotifications } from '@/providers/NotificationProvider';
 import { OSStateView } from './layout/OSStateView';
 
 export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { state: { notifications, loading }, markAsRead, markAllAsRead } = useNotifications();
+  const {
+    state: { notifications, loading },
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
   const router = useRouter();
 
   const handleNotificationClick = async (n: any) => {
@@ -61,10 +65,13 @@ export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClo
   };
 
   // Grouping logic
-  const today = notifications.filter((n) => isToday(new Date(n.createdAt)));
-  const yesterday = notifications.filter((n) => isYesterday(new Date(n.createdAt)));
-  const earlier = notifications.filter(
-    (n) => !isToday(new Date(n.createdAt)) && !isYesterday(new Date(n.createdAt))
+  const validNotifications = Array.isArray(notifications) ? notifications : [];
+  const today = validNotifications.filter((n) => n?.createdAt && isToday(new Date(n.createdAt)));
+  const yesterday = validNotifications.filter(
+    (n) => n?.createdAt && isYesterday(new Date(n.createdAt))
+  );
+  const earlier = validNotifications.filter(
+    (n) => n?.createdAt && !isToday(new Date(n.createdAt)) && !isYesterday(new Date(n.createdAt))
   );
 
   const NotificationGroup = ({ title, items }: { title: string; items: any[] }) => {
