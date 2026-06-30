@@ -155,8 +155,11 @@ export class AuthService implements IAuthService {
       session,
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
         role: user.role,
+        ward: user.ward,
+        points: user.points || 0,
       },
     });
   }
@@ -257,8 +260,11 @@ export class AuthService implements IAuthService {
       session: updatedSession,
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
         role: user.role,
+        ward: user.ward,
+        points: user.points || 0,
       },
     });
   }

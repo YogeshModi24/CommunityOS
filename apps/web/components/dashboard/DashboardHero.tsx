@@ -7,6 +7,7 @@ import React from 'react';
 
 import { GradientButton } from '@/components/ui/GradientButton';
 import { Avatar } from '@/components/ui/primitives';
+import { useSocket } from '@/hooks/useSocket';
 
 interface DashboardHeroProps {
   user: any;
@@ -15,6 +16,8 @@ interface DashboardHeroProps {
 }
 
 export function DashboardHero({ user, xp, level }: DashboardHeroProps) {
+  const { isConnected } = useSocket({});
+
   const greeting = (() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -43,8 +46,10 @@ export function DashboardHero({ user, xp, level }: DashboardHeroProps) {
             transition={{ delay: 0.1 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-text-secondary mb-6 backdrop-blur-md"
           >
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            Mission Control Online
+            <span
+              className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-danger'}`}
+            />
+            {isConnected ? 'Mission Control Online' : 'Mission Control Offline'}
           </motion.div>
 
           <motion.h1

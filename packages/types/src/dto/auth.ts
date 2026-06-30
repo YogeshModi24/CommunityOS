@@ -22,8 +22,11 @@ export interface AuthSessionDTO {
   session: UserSession;
   user: {
     id: string;
+    name?: string;
     email: string;
     role: string;
+    ward?: string;
+    points?: number;
   };
 }
 
