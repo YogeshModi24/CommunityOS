@@ -5,6 +5,7 @@ import {
   loginSchema,
   municipalityAccessRequestSchema,
   registerSchema,
+  setupAccountSchema,
 } from '@community-os/validation';
 import { NextFunction, Request, Response } from 'express';
 
@@ -12,6 +13,7 @@ import { container } from '../infra/container';
 import { AuthRequest } from '../middleware/auth';
 import { IUserService } from '../services/contracts/IUserService';
 import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
+import { CompleteSetupAccountUseCase } from '../use-cases/CompleteSetupAccountUseCase';
 import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
 import { GetCitizenInsightsUseCase } from '../use-cases/GetCitizenInsightsUseCase';
 import { GetDashboardDataUseCase } from '../use-cases/GetDashboardDataUseCase';
@@ -20,6 +22,7 @@ import { LoginUserUseCase } from '../use-cases/LoginUserUseCase';
 import { LogoutUserUseCase } from '../use-cases/LogoutUserUseCase';
 import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
 import { RegisterUserUseCase } from '../use-cases/RegisterUserUseCase';
+import { ValidateSetupTokenUseCase } from '../use-cases/ValidateSetupTokenUseCase';
 
 function getClientMeta(req: Request): ClientMetaDTO {
   const userAgent = req.headers['user-agent'] || '';
@@ -310,6 +313,47 @@ export async function approveMunicipalityRequest(
       ApproveMunicipalityAccessRequestUseCase
     );
     const result = await useCase.execute(id);
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/users/setup-account
+export async function validateSetupToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { token } = req.query;
+    if (typeof token !== 'string') {
+      throw new ValidationError('Setup token must be a string');
+    }
+    const useCase = container.resolve<ValidateSetupTokenUseCase>(ValidateSetupTokenUseCase);
+    const result = await useCase.execute(token);
+    if (result.isFailure) {
+      throw new ValidationError(result.error);
+    }
+    res.json({ success: true, data: result.value });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/users/setup-account
+export async function completeSetupAccount(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const validatedData = setupAccountSchema.parse(req.body);
+    const useCase = container.resolve<CompleteSetupAccountUseCase>(CompleteSetupAccountUseCase);
+    const result = await useCase.execute(validatedData);
     if (result.isFailure) {
       throw new ValidationError(result.error);
     }

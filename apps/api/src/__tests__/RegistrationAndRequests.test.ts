@@ -4,13 +4,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { rbacMiddleware } from '../middleware/rbac';
 import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
+import { CompleteSetupAccountUseCase } from '../use-cases/CompleteSetupAccountUseCase';
 import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
 import { ListMunicipalityAccessRequestsUseCase } from '../use-cases/ListMunicipalityAccessRequestsUseCase';
 import { RegisterUserUseCase } from '../use-cases/RegisterUserUseCase';
+import { ValidateSetupTokenUseCase } from '../use-cases/ValidateSetupTokenUseCase';
 
 const mockUserRepo = {
   findByEmail: vi.fn(),
   create: vi.fn(),
+  findByResetPasswordToken: vi.fn(),
+  updatePasswordAndClearToken: vi.fn(),
 };
 
 const mockUserService = {
@@ -247,6 +251,75 @@ describe('Registration & Access Requests Use Cases', () => {
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith(); // called with no errors
+    });
+  });
+
+  describe('ValidateSetupTokenUseCase', () => {
+    it('should validate token successfully if user exists and token not expired', async () => {
+      const expires = new Date(Date.now() + 60000);
+      mockUserRepo.findByResetPasswordToken.mockResolvedValue({
+        id: 'user-1',
+        email: 'officer@city.gov',
+        name: 'Officer Bob',
+        resetPasswordExpires: expires,
+      });
+
+      const useCase = new ValidateSetupTokenUseCase(mockUserRepo as any);
+      const result = await useCase.execute('valid-token');
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.email).toBe('officer@city.gov');
+    });
+
+    it('should fail if token is missing or invalid', async () => {
+      mockUserRepo.findByResetPasswordToken.mockResolvedValue(null);
+
+      const useCase = new ValidateSetupTokenUseCase(mockUserRepo as any);
+      const result = await useCase.execute('invalid-token');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Invalid or already used setup token');
+    });
+
+    it('should fail if token is expired', async () => {
+      const expires = new Date(Date.now() - 60000);
+      mockUserRepo.findByResetPasswordToken.mockResolvedValue({
+        id: 'user-1',
+        email: 'officer@city.gov',
+        resetPasswordExpires: expires,
+      });
+
+      const useCase = new ValidateSetupTokenUseCase(mockUserRepo as any);
+      const result = await useCase.execute('expired-token');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Setup token has expired');
+    });
+  });
+
+  describe('CompleteSetupAccountUseCase', () => {
+    it('should hash password, update user and clear token info successfully', async () => {
+      const expires = new Date(Date.now() + 60000);
+      mockUserRepo.findByResetPasswordToken.mockResolvedValue({
+        id: 'user-1',
+        email: 'officer@city.gov',
+        name: 'Officer Bob',
+        resetPasswordExpires: expires,
+      });
+      mockUserRepo.updatePasswordAndClearToken.mockResolvedValue({
+        id: 'user-1',
+        email: 'officer@city.gov',
+        role: 'municipality',
+      });
+
+      const useCase = new CompleteSetupAccountUseCase(mockUserRepo as any);
+      const result = await useCase.execute({ token: 'valid-token', password: 'newSecurePassword' });
+
+      expect(result.isSuccess).toBe(true);
+      expect(mockUserRepo.updatePasswordAndClearToken).toHaveBeenCalledWith(
+        'user-1',
+        expect.any(String)
+      );
     });
   });
 });

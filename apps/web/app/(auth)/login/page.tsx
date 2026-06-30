@@ -276,6 +276,18 @@ function LoginForm() {
                 </motion.div>
               )}
 
+              {/* Setup Success Callout */}
+              {searchParams.get('setup_success') === 'true' && (
+                <motion.div
+                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-3"
+                >
+                  <CheckCircle className="w-5 h-5 shrink-0" />
+                  Account successfully activated! Please log in below.
+                </motion.div>
+              )}
+
               {/* Form Mode Selection Buttons (Login vs Register/Request Access) */}
               <div className="flex border-b border-border/40 mb-6 gap-6 text-sm font-bold">
                 <button

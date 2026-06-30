@@ -94,7 +94,7 @@ export default function MunicipalityRequestsPage() {
 
   const copySetupLink = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    const link = `${origin}/login?type=municipality&tab=register`;
+    const link = `${origin}/setup-account?token=${setupToken}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

@@ -18,6 +18,7 @@ import { VoteService } from '../services/VoteService';
 import { AnalyzeIssueUseCase } from '../use-cases/AnalyzeIssueUseCase';
 import { ApproveMunicipalityAccessRequestUseCase } from '../use-cases/ApproveMunicipalityAccessRequestUseCase';
 import { AssignIssueUseCase } from '../use-cases/AssignIssueUseCase';
+import { CompleteSetupAccountUseCase } from '../use-cases/CompleteSetupAccountUseCase';
 import { CreateMunicipalityAccessRequestUseCase } from '../use-cases/CreateMunicipalityAccessRequestUseCase';
 import { DeleteNotificationUseCase } from '../use-cases/DeleteNotificationUseCase';
 import { GetCitizenInsightsUseCase } from '../use-cases/GetCitizenInsightsUseCase';
@@ -33,6 +34,7 @@ import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
 import { RegisterUserUseCase } from '../use-cases/RegisterUserUseCase';
 import { ReportIssueUseCase } from '../use-cases/ReportIssueUseCase';
 import { ResolveIssueUseCase } from '../use-cases/ResolveIssueUseCase';
+import { ValidateSetupTokenUseCase } from '../use-cases/ValidateSetupTokenUseCase';
 import { VoteIssueUseCase } from '../use-cases/VoteIssueUseCase';
 
 class ServiceContainer {
@@ -106,6 +108,8 @@ class ServiceContainer {
       userRepository,
       userService
     );
+    const validateSetupTokenUseCase = new ValidateSetupTokenUseCase(userRepository);
+    const completeSetupAccountUseCase = new CompleteSetupAccountUseCase(userRepository);
 
     // 5. Registering in the container
     this.instances.set('userRepository', userRepository);
@@ -153,6 +157,8 @@ class ServiceContainer {
       ApproveMunicipalityAccessRequestUseCase,
       approveMunicipalityAccessRequestUseCase
     );
+    this.instances.set(ValidateSetupTokenUseCase, validateSetupTokenUseCase);
+    this.instances.set(CompleteSetupAccountUseCase, completeSetupAccountUseCase);
   }
 
   public resolve<T>(key: any): T {

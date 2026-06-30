@@ -197,4 +197,21 @@ export class MongoUserRepository implements IUserRepository {
   async deleteAll(): Promise<void> {
     await UserMongoose.deleteMany({});
   }
+
+  async findByResetPasswordToken(token: string): Promise<User | null> {
+    const doc = await UserMongoose.findOne({ resetPasswordToken: token }).lean();
+    return doc ? mapMongoUser(doc) : null;
+  }
+
+  async updatePasswordAndClearToken(userId: string, passwordHash: string): Promise<User | null> {
+    const doc = await UserMongoose.findByIdAndUpdate(
+      userId,
+      {
+        $set: { password: passwordHash },
+        $unset: { resetPasswordToken: 1, resetPasswordExpires: 1 },
+      },
+      { new: true }
+    ).lean();
+    return doc ? mapMongoUser(doc) : null;
+  }
 }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import {
   approveMunicipalityRequest,
+  completeSetupAccount,
   getCitizenInsights,
   getDashboard,
   getLeaderboard,
@@ -13,6 +14,7 @@ import {
   register,
   requestMunicipalityAccess,
   saveLocation,
+  validateSetupToken,
 } from '../controllers/userController';
 import { authMiddleware } from '../middleware/auth';
 import { LoginLimiter, RefreshLimiter, RegisterLimiter } from '../middleware/rateLimiter';
@@ -43,6 +45,12 @@ router.get('/me/insights', authMiddleware, getCitizenInsights);
 
 // PATCH /api/users/locations — auth required
 router.patch('/locations', authMiddleware, saveLocation);
+
+// GET /api/users/setup-account
+router.get('/setup-account', validateSetupToken);
+
+// POST /api/users/setup-account
+router.post('/setup-account', completeSetupAccount);
 
 // POST /api/users/register
 router.post('/register', RegisterLimiter, register);
