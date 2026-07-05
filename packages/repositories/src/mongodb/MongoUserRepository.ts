@@ -232,6 +232,11 @@ export class MongoUserRepository implements IUserRepository {
     return doc ? mapMongoUser(doc) : null;
   }
 
+  async countUsers(role?: string): Promise<number> {
+    const query = role ? { role } : {};
+    return UserMongoose.countDocuments(query);
+  }
+
   async updatePasswordAndClearToken(userId: string, passwordHash: string): Promise<User | null> {
     const doc = await UserMongoose.findByIdAndUpdate(
       userId,

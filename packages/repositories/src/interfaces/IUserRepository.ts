@@ -15,5 +15,6 @@ export interface IUserRepository {
   findByWard(ward: string): Promise<User[]>;
   deleteAll(): Promise<void>;
   findByResetPasswordToken(token: string): Promise<User | null>;
+  countUsers(role?: string): Promise<number>;
   updatePasswordAndClearToken(userId: string, passwordHash: string): Promise<User | null>;
 }

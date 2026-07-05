@@ -38,6 +38,24 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Routes
+app.get('/api/stats', async (_req, res, next) => {
+  try {
+    const issueRepo = container.resolve<any>('issueRepository');
+    const userRepo = container.resolve<any>('userRepository');
+
+    const issueStats = await issueRepo.getDashboardStats();
+    const citizenCount = await userRepo.countUsers('citizen');
+
+    res.json({
+      total: issueStats.totalIssues,
+      resolved: issueStats.resolvedIssues,
+      users: citizenCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use('/api/issues', issueRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);

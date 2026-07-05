@@ -7,7 +7,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { useNotifications } from '@/providers/NotificationProvider';
 
 export function TopBar({ pageTitle }: { pageTitle?: string }) {
-  const { isConnected } = useSocket({});
+  const { socket, isConnected } = useSocket({});
   const {
     state: { unreadCount },
     dispatch,
@@ -16,6 +16,10 @@ export function TopBar({ pageTitle }: { pageTitle?: string }) {
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
   };
+
+  const transportName = socket?.io?.engine?.transport?.name;
+  const isWebsocket = isConnected && transportName === 'websocket';
+  const isPolling = isConnected && (transportName === 'polling' || !transportName);
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-bg/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 lg:px-8">
@@ -38,12 +42,20 @@ export function TopBar({ pageTitle }: { pageTitle?: string }) {
         )}
         <div className="flex items-center gap-2 px-2 py-1 bg-layer1 rounded-full border border-white/5 text-[10px] uppercase tracking-wider font-mono">
           <span
-            className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-danger'}`}
+            className={`w-2 h-2 rounded-full ${
+              isWebsocket
+                ? 'bg-success animate-pulse'
+                : isPolling
+                  ? 'bg-amber-500 animate-pulse'
+                  : 'bg-white/20'
+            }`}
           />
-          {isConnected ? (
-            <span className="text-success">Live Sync</span>
+          {isWebsocket ? (
+            <span className="text-success">Live</span>
+          ) : isPolling ? (
+            <span className="text-amber-500">Live: Polling</span>
           ) : (
-            <span className="text-danger">Offline</span>
+            <span className="text-text-tertiary">Offline</span>
           )}
         </div>
       </div>

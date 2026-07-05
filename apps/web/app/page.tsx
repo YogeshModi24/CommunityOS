@@ -58,52 +58,56 @@ export default function LandingPage() {
       <FloatingNavigation />
 
       {/* HERO SECTION */}
-      <section className="relative pt-40 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[85vh]">
+      <section className="relative pt-40 pb-20 w-full min-h-[85vh] flex flex-col items-center justify-center">
         <TelemetryNetwork />
 
-        <motion.div
-          initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md"
-        >
-          <span className="w-2 h-2 rounded-full bg-success motion-safe:animate-pulse" />
-          <span className="text-sm font-medium text-text-secondary">CommunityOS v8.0 is Live</span>
-        </motion.div>
-
-        <HeroHeading
-          title="The Civic Intelligence "
-          highlight="Platform for Modern Cities"
-          subtitle="CommunityOS transforms raw citizen reports into structured, actionable intelligence using AI. Build safer, cleaner, and smarter neighborhoods without the bureaucratic friction."
-          className="max-w-4xl"
-        />
-
-        <motion.div
-          className="mt-12 flex flex-col sm:flex-row items-center gap-4"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen rounded-xl"
-            aria-label="Launch Platform"
+        <div className="w-full max-w-7xl mx-auto px-6 flex flex-col items-center justify-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md"
           >
-            <GradientButton size="lg" className="w-full sm:w-auto">
-              Launch Platform
-              <ArrowRight className="w-5 h-5 ml-1" />
-            </GradientButton>
-          </Link>
-          <Link
-            href="/login?type=municipality"
-            className="w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen rounded-xl"
-            aria-label="Municipality Sign In"
+            <span className="w-2 h-2 rounded-full bg-success motion-safe:animate-pulse" />
+            <span className="text-sm font-medium text-text-secondary">
+              CommunityOS v8.0 is Live
+            </span>
+          </motion.div>
+
+          <HeroHeading
+            title="The Civic Intelligence "
+            highlight="Platform for Modern Cities"
+            subtitle="CommunityOS transforms raw citizen reports into structured, actionable intelligence using AI. Build safer, cleaner, and smarter neighborhoods without the bureaucratic friction."
+            className="max-w-4xl"
+          />
+
+          <motion.div
+            className="mt-12 flex flex-col sm:flex-row items-center gap-4"
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <GradientButton variant="glass" size="lg" className="w-full sm:w-auto">
-              Municipality Sign In
-            </GradientButton>
-          </Link>
-        </motion.div>
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen rounded-xl"
+              aria-label="Launch Platform"
+            >
+              <GradientButton size="lg" className="w-full sm:w-auto">
+                Launch Platform
+                <ArrowRight className="w-5 h-5 ml-1" />
+              </GradientButton>
+            </Link>
+            <Link
+              href="/login?type=municipality"
+              className="w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-citizen rounded-xl"
+              aria-label="Municipality Sign In"
+            >
+              <GradientButton variant="glass" size="lg" className="w-full sm:w-auto">
+                Municipality Sign In
+              </GradientButton>
+            </Link>
+          </motion.div>
+        </div>
       </section>
 
       {/* LIVE DASHBOARD PREVIEW */}
