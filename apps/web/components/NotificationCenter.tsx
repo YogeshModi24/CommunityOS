@@ -64,18 +64,37 @@ export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClo
     }
   };
 
+  const formatNotificationTime = (dateStr: any) => {
+    if (!dateStr) return 'some time ago';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'some time ago';
+    try {
+      return formatDistanceToNow(d, { addSuffix: true });
+    } catch {
+      return 'some time ago';
+    }
+  };
+
   // Grouping logic
   const validNotifications = Array.isArray(notifications) ? notifications : [];
-  const today = validNotifications.filter((n) => n?.createdAt && isToday(new Date(n.createdAt)));
-  const yesterday = validNotifications.filter(
-    (n) => n?.createdAt && isYesterday(new Date(n.createdAt))
-  );
-  const earlier = validNotifications.filter(
-    (n) => n?.createdAt && !isToday(new Date(n.createdAt)) && !isYesterday(new Date(n.createdAt))
-  );
+  const today = validNotifications.filter((n) => {
+    if (!n?.createdAt) return false;
+    const d = new Date(n.createdAt);
+    return !isNaN(d.getTime()) && isToday(d);
+  });
+  const yesterday = validNotifications.filter((n) => {
+    if (!n?.createdAt) return false;
+    const d = new Date(n.createdAt);
+    return !isNaN(d.getTime()) && isYesterday(d);
+  });
+  const earlier = validNotifications.filter((n) => {
+    if (!n?.createdAt) return false;
+    const d = new Date(n.createdAt);
+    return !isNaN(d.getTime()) && !isToday(d) && !isYesterday(d);
+  });
 
   const NotificationGroup = ({ title, items }: { title: string; items: any[] }) => {
-    if (items.length === 0) return null;
+    if (!Array.isArray(items) || items.length === 0) return null;
     return (
       <div className="mb-8">
         <div className="px-6 mb-3 text-xs font-bold text-text-tertiary uppercase tracking-widest">
@@ -114,7 +133,7 @@ export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClo
                         {n.title}
                       </span>
                       <span className="text-[11px] text-text-tertiary font-medium shrink-0">
-                        {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                        {formatNotificationTime(n.createdAt)}
                       </span>
                     </div>
                     <p
@@ -167,7 +186,7 @@ export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClo
                 Activity Center
               </h2>
               <div className="flex items-center gap-2">
-                {notifications.some((n) => !n.read) && (
+                {Array.isArray(notifications) && notifications.some((n) => !n.read) && (
                   <button
                     onClick={() => markAllAsRead()}
                     className="w-8 h-8 rounded-full bg-layer2 hover:bg-citizen/20 hover:text-citizen border border-border text-text-tertiary flex items-center justify-center transition-colors"
@@ -195,7 +214,7 @@ export function NotificationCenter({ isOpen, onClose }: { isOpen: boolean; onClo
                     description="Connecting to civic data streams..."
                   />
                 </div>
-              ) : notifications.length === 0 ? (
+              ) : !Array.isArray(notifications) || notifications.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <OSStateView
                     type="empty"

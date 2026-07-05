@@ -53,32 +53,40 @@ function notificationReducer(
     case 'FETCH_SUCCESS':
       return {
         ...state,
-        notifications: action.payload.notifications,
+        notifications: Array.isArray(action.payload.notifications)
+          ? action.payload.notifications
+          : [],
         unreadCount: action.payload.unreadCount,
         loading: false,
       };
     case 'FETCH_ERROR':
       return { ...state, error: action.payload, loading: false };
-    case 'NEW_NOTIFICATION':
+    case 'NEW_NOTIFICATION': {
+      const currentNotifications = Array.isArray(state.notifications) ? state.notifications : [];
       return {
         ...state,
-        notifications: [action.payload, ...state.notifications],
+        notifications: [action.payload, ...currentNotifications],
         unreadCount: state.unreadCount + 1,
       };
-    case 'MARK_READ':
+    }
+    case 'MARK_READ': {
+      const readNotifications = Array.isArray(state.notifications) ? state.notifications : [];
       return {
         ...state,
-        notifications: state.notifications.map((n) =>
+        notifications: readNotifications.map((n) =>
           n.id === action.payload ? { ...n, read: true } : n
         ),
         unreadCount: Math.max(0, state.unreadCount - 1),
       };
-    case 'MARK_ALL_READ':
+    }
+    case 'MARK_ALL_READ': {
+      const allNotifications = Array.isArray(state.notifications) ? state.notifications : [];
       return {
         ...state,
-        notifications: state.notifications.map((n) => ({ ...n, read: true })),
+        notifications: allNotifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
       };
+    }
     case 'SET_CENTER_OPEN':
       return {
         ...state,
@@ -111,7 +119,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       dispatch({
         type: 'FETCH_SUCCESS',
         payload: {
-          notifications: res.data.data || [],
+          notifications: Array.isArray(res.data.data) ? res.data.data : [],
           unreadCount: unreadRes.data.data?.count || 0,
         },
       });

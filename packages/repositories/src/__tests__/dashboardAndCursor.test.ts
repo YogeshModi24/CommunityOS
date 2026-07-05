@@ -88,6 +88,15 @@ describe('Dashboard and Cursor Pagination Tests', () => {
         },
       ];
 
+      const mockUser = {
+        _id: mockUserId,
+        role: 'citizen',
+        ward: 'Ward 12',
+      };
+      const mockFindByIdChain = {
+        lean: vi.fn().mockResolvedValue(mockUser),
+      };
+      vi.mocked(UserMongoose.findById).mockReturnValue(mockFindByIdChain as any);
       vi.mocked(UserMongoose.aggregate).mockResolvedValue(mockAggregationResult);
 
       const result = await userRepo.getDashboardProjection(mockUserId);

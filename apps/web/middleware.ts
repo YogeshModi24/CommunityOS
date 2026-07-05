@@ -5,6 +5,15 @@ export default auth((req: any) => {
   const nextUrl = (req as any).nextUrl;
   const pathname = nextUrl.pathname;
 
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/feed')) {
+    // eslint-disable-next-line no-console
+    console.log('[Middleware Debug]', {
+      pathname,
+      isLoggedIn,
+      auth: req.auth,
+    });
+  }
+
   const protectedRoutes = ['/dashboard', '/feed', '/issue', '/leaderboard', '/map', '/report'];
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthPage = pathname.startsWith('/login');

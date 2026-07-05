@@ -85,7 +85,7 @@ export function HallOfFameCard({ user }: { user: any }) {
             >
               <span className="material-symbols-outlined text-[24px]">verified_user</span>
             </div>
-            {user.badges.includes('verified') && (
+            {Array.isArray(user.badges) && user.badges.includes('verified') && (
               <div
                 className="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 shadow-inner"
                 title="Admin Authority"

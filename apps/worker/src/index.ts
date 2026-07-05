@@ -71,13 +71,15 @@ async function bootstrap() {
 
   // 6. Initialize DI Container
   logger.info('[Worker] Initializing DI Container...', { event: 'container_initializing' });
-  await import('../../api/src/infra/container.js');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../../api/src/infra/container');
   logger.info('[Worker] DI Container initialized successfully', { event: 'container_initialized' });
 
   // 7. Initialize BullMQ Workers
   if (!useMock) {
     logger.info('[Worker] Starting BullMQ Worker...', { event: 'ai_worker_starting' });
-    const { startAIWorker } = await import('../../api/src/jobs/aiWorker.js');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { startAIWorker } = require('../../api/src/jobs/aiWorker');
     activeWorker = startAIWorker();
 
     monitorQueue = new Queue('ai-analysis', { connection: { url: env.REDIS_URL } });
@@ -91,7 +93,8 @@ async function bootstrap() {
   logger.info('[Worker] Starting periodic session cleanup job...', {
     event: 'session_cleanup_init',
   });
-  const { container: apiContainer } = await import('../../api/src/infra/container.js');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { container: apiContainer } = require('../../api/src/infra/container');
   const sessionRepo = apiContainer.resolve('userSessionRepository') as any;
 
   const runCleanup = async () => {

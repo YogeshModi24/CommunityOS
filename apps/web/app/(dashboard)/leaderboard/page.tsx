@@ -19,7 +19,8 @@ export default function LeaderboardPage() {
     if (!silent) setLoading(true);
     try {
       const res = await api.get('/api/users/leaderboard');
-      const users = res.data.data.map((u: any, i: number) => ({
+      const rawUsers = Array.isArray(res.data?.data) ? res.data.data : [];
+      const users = rawUsers.map((u: any, i: number) => ({
         id: u.id || u._id,
         name: u.name,
         xp: u.points || 0,
