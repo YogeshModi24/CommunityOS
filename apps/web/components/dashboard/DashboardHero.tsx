@@ -13,9 +13,15 @@ interface DashboardHeroProps {
   user: any;
   xp: number;
   level: number;
+  systemStats?: {
+    total: number;
+    resolved: number;
+    users: number;
+    pendingApprovals: number;
+  };
 }
 
-export function DashboardHero({ user, xp, level }: DashboardHeroProps) {
+export function DashboardHero({ user, xp, level, systemStats }: DashboardHeroProps) {
   const { isConnected } = useSocket({});
 
   const greeting = (() => {
@@ -85,13 +91,13 @@ export function DashboardHero({ user, xp, level }: DashboardHeroProps) {
                 <Link href="/admin/municipality-requests">
                   <GradientButton className="w-full sm:w-auto">
                     <ShieldAlert className="w-4 h-4 mr-2" />
-                    Clearance Panel
+                    Clearance Control
                   </GradientButton>
                 </Link>
-                <Link href="/map">
+                <Link href="/feed">
                   <GradientButton variant="glass" className="w-full sm:w-auto">
                     <MapIcon className="w-4 h-4 mr-2" />
-                    Open Live Map
+                    Manage All Issues
                   </GradientButton>
                 </Link>
               </>
@@ -146,21 +152,36 @@ export function DashboardHero({ user, xp, level }: DashboardHeroProps) {
               </div>
             </div>
 
-            <div className="border-t border-white/5 pt-4 space-y-2.5 text-xs font-medium">
-              <div className="flex justify-between text-text-secondary">
-                <span>Jurisdiction:</span>
-                <span className="font-bold text-white uppercase tracking-wider">
-                  {user?.ward || 'City Wide'}
-                </span>
+            {user?.role === 'admin' ? (
+              <div className="border-t border-white/5 pt-4 space-y-2.5 text-xs font-medium">
+                <div className="flex justify-between text-text-secondary">
+                  <span>Total System Issues:</span>
+                  <span className="font-bold text-white font-mono">{systemStats?.total ?? 0}</span>
+                </div>
+                <div className="flex justify-between text-text-secondary">
+                  <span>Pending Approvals:</span>
+                  <span className="font-bold text-accent font-mono">
+                    {systemStats?.pendingApprovals ?? 0}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between text-text-secondary">
-                <span>Access Status:</span>
-                <span className="text-success font-bold flex items-center gap-1.5 font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                  AUTHORIZED
-                </span>
+            ) : (
+              <div className="border-t border-white/5 pt-4 space-y-2.5 text-xs font-medium">
+                <div className="flex justify-between text-text-secondary">
+                  <span>Jurisdiction:</span>
+                  <span className="font-bold text-white uppercase tracking-wider">
+                    {user?.ward || 'City Wide'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-text-secondary">
+                  <span>Access Status:</span>
+                  <span className="text-success font-bold flex items-center gap-1.5 font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                    AUTHORIZED
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         ) : (
           <motion.div

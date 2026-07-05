@@ -42,14 +42,18 @@ app.get('/api/stats', async (_req, res, next) => {
   try {
     const issueRepo = container.resolve<any>('issueRepository');
     const userRepo = container.resolve<any>('userRepository');
+    const accessRequestRepo = container.resolve<any>('municipalityAccessRequestRepository');
 
     const issueStats = await issueRepo.getDashboardStats();
     const citizenCount = await userRepo.countUsers('citizen');
+    const requests = await accessRequestRepo.listAll();
+    const pendingCount = requests.filter((r: any) => r.status === 'pending').length;
 
     res.json({
       total: issueStats.totalIssues,
       resolved: issueStats.resolvedIssues,
       users: citizenCount,
+      pendingApprovals: pendingCount,
     });
   } catch (err) {
     next(err);

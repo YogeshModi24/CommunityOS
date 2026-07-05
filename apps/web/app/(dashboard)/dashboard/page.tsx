@@ -124,14 +124,35 @@ export default function DashboardPage() {
     },
   });
 
+  const [systemStats, setSystemStats] = useState<any>(null);
+
+  const fetchStats = () => {
+    if (session?.user?.role === 'admin') {
+      api
+        .get('/api/stats')
+        .then((res) => {
+          setSystemStats(res.data);
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error('Failed to load stats', err);
+        });
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
     fetchDashboard();
+    fetchStats();
 
-    const handleResync = () => fetchDashboard();
+    const handleResync = () => {
+      fetchDashboard();
+      fetchStats();
+    };
     window.addEventListener('socket:resync', handleResync);
     return () => window.removeEventListener('socket:resync', handleResync);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.role]);
 
   if (!mounted) return null;
 
@@ -164,7 +185,7 @@ export default function DashboardPage() {
           }
         >
           {/* 1. Mission Control Hero */}
-          <DashboardHero user={user} xp={xp} level={level} />
+          <DashboardHero user={user} xp={xp} level={level} systemStats={systemStats} />
 
           {/* Ward Matching Warning Banner */}
           {dashboardData?.noIssuesForWard && (
@@ -194,14 +215,51 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* 2. Infrastructure Status Ribbon */}
-          <InfrastructureRibbon
-            totalReports={dashboardData?.totalReports || 0}
-            resolvedReports={dashboardData?.resolvedReports || 0}
-            pendingReports={dashboardData?.pendingReports || 0}
-            points={dashboardData?.points || 0}
-            isLoading={loading}
-          />
+          {/* 2. Quick Stats Row (for Admin) vs Infrastructure Status Ribbon (for Others) */}
+          {user?.role === 'admin' ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+                <span className="text-text-muted text-xs font-mono uppercase tracking-wider">
+                  Total Issues
+                </span>
+                <span className="text-3xl font-display font-bold text-white mt-2 font-mono">
+                  {loading ? '...' : (systemStats?.total ?? 0)}
+                </span>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+                <span className="text-text-muted text-xs font-mono uppercase tracking-wider">
+                  Resolved
+                </span>
+                <span className="text-3xl font-display font-bold text-success mt-2 font-mono">
+                  {loading ? '...' : (systemStats?.resolved ?? 0)}
+                </span>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+                <span className="text-text-muted text-xs font-mono uppercase tracking-wider">
+                  Active Citizens
+                </span>
+                <span className="text-3xl font-display font-bold text-primary mt-2 font-mono">
+                  {loading ? '...' : (systemStats?.users ?? 0)}
+                </span>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+                <span className="text-text-muted text-xs font-mono uppercase tracking-wider">
+                  Pending Approvals
+                </span>
+                <span className="text-3xl font-display font-bold text-accent mt-2 font-mono">
+                  {loading ? '...' : (systemStats?.pendingApprovals ?? 0)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <InfrastructureRibbon
+              totalReports={dashboardData?.totalReports || 0}
+              resolvedReports={dashboardData?.resolvedReports || 0}
+              pendingReports={dashboardData?.pendingReports || 0}
+              points={dashboardData?.points || 0}
+              isLoading={loading}
+            />
+          )}
 
           {/* 3. Priority Workspace (Activity + Telemetry Overview) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
