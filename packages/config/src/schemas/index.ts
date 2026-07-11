@@ -32,11 +32,11 @@ export const ServerSchema = SharedSchema.extend({
     .describe(
       'Redis connection URL for BullMQ job queue manager. Set to "mock" to use in-memory queue.'
     ),
-  OPENAI_API_KEY: z
+  GROQ_API_KEY: z
     .string()
     .default('mock')
     .describe(
-      'OpenAI API Key for gpt-4o analysis. Set to "mock" to run with simulated mock responses.'
+      'Groq API Key for llama-3.3-70b-versatile analysis. Set to "mock" to run with simulated mock responses.'
     ),
   CLOUDINARY_CLOUD_NAME: z
     .string()

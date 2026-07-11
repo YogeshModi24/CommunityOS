@@ -128,7 +128,7 @@ sequenceDiagram
 - `PORT` (Default: 5001)
 - `MONGODB_URI` (Atlas connection string)
 - `REDIS_URL` (Upstash connection string)
-- `OPENAI_API_KEY` (SaaS key / "mock")
+- `GROQ_API_KEY` (SaaS key / "mock")
 - `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`
 - `JWT_SECRET` (For token signing)
 - `CLIENT_URL` (Cross-origin configuration: http://localhost:3000)

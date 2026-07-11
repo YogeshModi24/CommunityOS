@@ -14,7 +14,7 @@ The worker validates parameters at boot. The following variables must be defined
 | `MONGODB_URI`         | Mongo connection string                            |   Yes    | `mongodb://mongodb:27017/communityos` |
 | `REDIS_URL`           | Redis cluster URL                                  |   Yes    | `redis://redis:6379`                  |
 | `NEXT_PUBLIC_API_URL` | Express server address (resolves AI fetches)       |   Yes    | `http://api:5001`                     |
-| `OPENAI_API_KEY`      | Key for Vision AI models                           |   Yes    | `sk-proj-...`                         |
+| `GROQ_API_KEY`        | Key for Groq AI models                             |   Yes    | `gsk-...`                             |
 
 ---
 

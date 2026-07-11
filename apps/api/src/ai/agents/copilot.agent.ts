@@ -1,84 +1,185 @@
-import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
-import { ChatOpenAI } from '@langchain/openai';
+import Groq from 'groq-sdk';
 
 import { logger } from '../../lib/logger';
 import { MunicipalitySystemPrompt } from '../prompts/municipality.system';
 import { ToolRegistry } from '../registry/ToolRegistry';
 
+// Zod schema to JSON schema helper for Groq tools
+function zodToJsonSchema(schema: any): any {
+  if (!schema || !schema.shape) {
+    return { type: 'object', properties: {} };
+  }
+  const properties: any = {};
+  const required: string[] = [];
+
+  for (const [key, prop] of Object.entries(schema.shape)) {
+    let currentProp: any = prop;
+    let isOptional = false;
+
+    while (currentProp && currentProp._def) {
+      const typeName = currentProp._def.typeName;
+      if (typeName === 'ZodOptional') {
+        isOptional = true;
+        currentProp = currentProp._def.innerType;
+      } else if (typeName === 'ZodDefault') {
+        isOptional = true;
+        currentProp = currentProp._def.innerType;
+      } else {
+        break;
+      }
+    }
+
+    const typeDef = currentProp?._def;
+    if (!typeDef) continue;
+
+    const propSchema: any = {};
+    if (currentProp.description) {
+      propSchema.description = currentProp.description;
+    } else if (typeDef.description) {
+      propSchema.description = typeDef.description;
+    }
+
+    switch (typeDef.typeName) {
+      case 'ZodString':
+        propSchema.type = 'string';
+        break;
+      case 'ZodNumber':
+        propSchema.type = 'number';
+        break;
+      case 'ZodBoolean':
+        propSchema.type = 'boolean';
+        break;
+      case 'ZodEnum':
+        propSchema.type = 'string';
+        propSchema.enum = typeDef.values;
+        break;
+      default:
+        propSchema.type = 'string';
+    }
+
+    properties[key] = propSchema;
+    if (!isOptional) {
+      required.push(key);
+    }
+  }
+
+  return {
+    type: 'object',
+    properties,
+    required: required.length > 0 ? required : undefined,
+  };
+}
+
 export async function* runCopilotAgent(
-  messages: { role: string; content: string }[],
+  messages: { role: string; content: string }[]
 ): AsyncGenerator<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey || apiKey === 'mock' || apiKey.startsWith('change_me')) {
-    yield 'I am currently running in mock mode and cannot access live tools. Please configure an OpenAI API key.';
+    yield 'I am currently running in mock mode and cannot access live tools. Please configure a Groq API key.';
     return;
   }
 
-  const model = new ChatOpenAI({
-    model: 'gpt-4o',
-    temperature: 0,
-    streaming: true,
-  });
+  const groq = new Groq({ apiKey });
+  const model = 'llama-3.3-70b-versatile';
 
-  const modelWithTools = model.bindTools(ToolRegistry as any);
+  // Formulate messages list
+  const apiMessages: any[] = [{ role: 'system', content: MunicipalitySystemPrompt }];
 
-  const lcMessages: any[] = [new SystemMessage(MunicipalitySystemPrompt)];
-  
   for (const msg of messages) {
-    if (msg.role === 'user') {
-      lcMessages.push(new HumanMessage(msg.content));
-    } else if (msg.role === 'assistant') {
-      lcMessages.push(new AIMessage(msg.content));
-    }
+    apiMessages.push({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content,
+    });
   }
+
+  const formattedTools = ToolRegistry.map((tool) => ({
+    type: 'function' as const,
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: zodToJsonSchema(tool.schema),
+    },
+  }));
 
   let numCalls = 0;
   const maxCalls = 5;
 
   while (numCalls < maxCalls) {
     numCalls++;
-    const response = await modelWithTools.invoke(lcMessages);
-    lcMessages.push(response);
 
-    if (response.tool_calls && response.tool_calls.length > 0) {
-      for (const toolCall of response.tool_calls) {
-        logger.info(`[CopilotAgent] Executing tool: ${toolCall.name}`, {
-          tool: toolCall.name,
-          args: toolCall.args,
+    // Call the LLM to get next step (either final response or tool call)
+    const response = await groq.chat.completions.create({
+      model,
+      messages: apiMessages,
+      tools: formattedTools,
+      tool_choice: 'auto',
+      temperature: 0,
+    });
+
+    const choice = response.choices[0];
+    if (!choice) {
+      break;
+    }
+
+    const responseMsg = choice.message;
+
+    // Push the assistant message to history
+    apiMessages.push({
+      role: 'assistant',
+      content: responseMsg.content || null,
+      tool_calls: responseMsg.tool_calls || undefined,
+    });
+
+    if (responseMsg.tool_calls && responseMsg.tool_calls.length > 0) {
+      for (const toolCall of responseMsg.tool_calls) {
+        logger.info(`[CopilotAgent] Executing tool: ${toolCall.function.name}`, {
+          tool: toolCall.function.name,
+          args: toolCall.function.arguments,
         });
 
-        const tool = ToolRegistry.find(t => t.name === toolCall.name);
-        
+        const tool = ToolRegistry.find((t) => t.name === toolCall.function.name);
+
         let toolResult = '';
         if (tool) {
           try {
+            const args = JSON.parse(toolCall.function.arguments || '{}');
             const startTime = Date.now();
-            toolResult = await tool.invoke(toolCall.args);
+            toolResult = await tool.invoke(args);
             const duration = Date.now() - startTime;
-            logger.info(`[CopilotAgent] Tool execution succeeded: ${toolCall.name}`, { durationMs: duration });
+            logger.info(`[CopilotAgent] Tool execution succeeded: ${toolCall.function.name}`, {
+              durationMs: duration,
+            });
           } catch (err: any) {
-            logger.error(`[CopilotAgent] Tool execution failed: ${toolCall.name}`, err);
+            logger.error(`[CopilotAgent] Tool execution failed: ${toolCall.function.name}`, err);
             toolResult = `Error executing tool: ${err.message}`;
           }
         } else {
-          toolResult = `Tool ${toolCall.name} not found.`;
+          toolResult = `Tool ${toolCall.function.name} not found.`;
         }
 
-        lcMessages.push(
-          new ToolMessage({
-            tool_call_id: toolCall.id!,
-            content: toolResult,
-          })
-        );
+        // Push tool response to history
+        apiMessages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          name: toolCall.function.name,
+          content: toolResult,
+        });
       }
     } else {
-      // Stream the final response
-      // Remove the last 'invoke' response and use stream instead
-      lcMessages.pop();
-      const stream = await modelWithTools.stream(lcMessages);
+      // No tool calls, stream the final response
+      apiMessages.pop();
+
+      const stream = await groq.chat.completions.create({
+        model,
+        messages: apiMessages,
+        stream: true,
+        temperature: 0,
+      });
+
       for await (const chunk of stream) {
-        if (chunk.content) {
-          yield chunk.content.toString();
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          yield content;
         }
       }
       break;

@@ -14,7 +14,7 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false
-      - key: OPENAI_API_KEY
+      - key: GROQ_API_KEY
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
@@ -47,8 +47,8 @@ services:
           name: community-os-api
           type: web
           envVarKey: REDIS_URL
-      - key: OPENAI_API_KEY
+      - key: GROQ_API_KEY
         fromService:
           name: community-os-api
           type: web
-          envVarKey: OPENAI_API_KEY
+          envVarKey: GROQ_API_KEY

@@ -4,18 +4,18 @@ This document lists all environment variables supported by **CommunityOS** and v
 
 ## 1. Server Configuration (API & Worker)
 
-| Variable Name           | Required | Default Value                        | Description                                                                              |
-| :---------------------- | :------- | :----------------------------------- | :--------------------------------------------------------------------------------------- |
-| `NODE_ENV`              | No       | `development`                        | The runtime mode of the application (local, development, test, staging, production).     |
-| `PORT`                  | No       | `5001`                               | Port number the Express API server listens on.                                           |
-| `MONGODB_URI`           | **Yes**  | `N/A`                                | Required. MongoDB connection URI string.                                                 |
-| `REDIS_URL`             | No       | `mock`                               | Redis connection URL for BullMQ job queue manager. Set to "mock" to use in-memory queue. |
-| `OPENAI_API_KEY`        | No       | `mock`                               | OpenAI API Key for gpt-4o analysis. Set to "mock" to run with simulated mock responses.  |
-| `CLOUDINARY_CLOUD_NAME` | No       | `mock`                               | Cloudinary cloud name for media upload. Set to "mock" for local mocks.                   |
-| `CLOUDINARY_API_KEY`    | No       | `mock`                               | Cloudinary API Key for authentication. Set to "mock" for local mocks.                    |
-| `CLOUDINARY_API_SECRET` | No       | `mock`                               | Cloudinary API Secret for authentication. Set to "mock" for local mocks.                 |
-| `JWT_SECRET`            | No       | `change_me_to_random_32_char_string` | Secret key used to sign and verify JWT authentication tokens.                            |
-| `CLIENT_URL`            | No       | `http://localhost:3000`              | Domain URL of the Next.js client web application (used for CORS mapping).                |
+| Variable Name           | Required | Default Value                        | Description                                                                                            |
+| :---------------------- | :------- | :----------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`              | No       | `development`                        | The runtime mode of the application (local, development, test, staging, production).                   |
+| `PORT`                  | No       | `5001`                               | Port number the Express API server listens on.                                                         |
+| `MONGODB_URI`           | **Yes**  | `N/A`                                | Required. MongoDB connection URI string.                                                               |
+| `REDIS_URL`             | No       | `mock`                               | Redis connection URL for BullMQ job queue manager. Set to "mock" to use in-memory queue.               |
+| `GROQ_API_KEY`          | No       | `mock`                               | Groq API Key for llama-3.3-70b-versatile analysis. Set to "mock" to run with simulated mock responses. |
+| `CLOUDINARY_CLOUD_NAME` | No       | `mock`                               | Cloudinary cloud name for media upload. Set to "mock" for local mocks.                                 |
+| `CLOUDINARY_API_KEY`    | No       | `mock`                               | Cloudinary API Key for authentication. Set to "mock" for local mocks.                                  |
+| `CLOUDINARY_API_SECRET` | No       | `mock`                               | Cloudinary API Secret for authentication. Set to "mock" for local mocks.                               |
+| `JWT_SECRET`            | No       | `change_me_to_random_32_char_string` | Secret key used to sign and verify JWT authentication tokens.                                          |
+| `CLIENT_URL`            | No       | `http://localhost:3000`              | Domain URL of the Next.js client web application (used for CORS mapping).                              |
 
 ## 2. Client Configuration (Next.js Application)
 
