@@ -366,10 +366,8 @@ export default function DashboardPage() {
 
         {/* Persistent Right Panel for Copilot */}
         {(user?.role === 'admin' || user?.role === 'municipality') && (
-          <div className="xl:col-span-1">
-            <div className="sticky top-24">
-              <MunicipalityCopilot />
-            </div>
+          <div className="xl:col-span-1 xl:sticky xl:top-8 xl:h-[calc(100vh-8rem)] flex flex-col">
+            <MunicipalityCopilot />
           </div>
         )}
       </div>

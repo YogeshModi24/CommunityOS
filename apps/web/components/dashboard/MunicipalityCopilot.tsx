@@ -9,7 +9,7 @@ import { aiClient } from '@/lib/api/ai';
 
 export function MunicipalityCopilot() {
   const [hasNewData, setHasNewData] = React.useState(false);
-  
+
   const {
     messages,
     input,
@@ -20,12 +20,16 @@ export function MunicipalityCopilot() {
     sendMessage,
     retryLast,
     stopGeneration,
-    clearConversation
+    clearConversation,
   } = useAIChat({
     apiFn: aiClient.streamMunicipalityCopilot,
     initialMessages: [
-      { role: 'assistant', content: 'Welcome to Mission Control. How can I assist you with operational insights today?' }
-    ]
+      {
+        role: 'assistant',
+        content:
+          'Welcome to Mission Control. How can I assist you with operational insights today?',
+      },
+    ],
   });
 
   useSocket({
@@ -33,7 +37,7 @@ export function MunicipalityCopilot() {
       setHasNewData(true);
       // Auto-hide the badge after 5 seconds
       setTimeout(() => setHasNewData(false), 5000);
-    }
+    },
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -61,7 +65,7 @@ export function MunicipalityCopilot() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] min-h-[500px] max-h-[800px] border border-white/10 bg-layer1 rounded-xl overflow-hidden shadow-md">
+    <div className="flex flex-col h-[500px] xl:h-full border border-white/10 bg-layer1 rounded-xl overflow-hidden shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/5 bg-muted/20 px-4 py-3">
         <div className="flex items-center gap-3">
@@ -80,9 +84,9 @@ export function MunicipalityCopilot() {
             <p className="text-xs text-text-tertiary font-mono">Operations Analyst</p>
           </div>
         </div>
-        <button 
+        <button
           onClick={clearConversation}
-          className="h-8 w-8 text-text-tertiary hover:text-white flex items-center justify-center rounded-md hover:bg-white/5 transition-colors" 
+          className="h-8 w-8 text-text-tertiary hover:text-white flex items-center justify-center rounded-md hover:bg-white/5 transition-colors"
           title="Clear Chat"
         >
           <Trash2 className="h-4 w-4" />
@@ -104,7 +108,7 @@ export function MunicipalityCopilot() {
                     : 'bg-layer3 border border-white/5 text-text-secondary rounded-tl-none font-mono text-xs'
                 }`}
                 onClick={() => msg.role === 'assistant' && copyToClipboard(msg.content)}
-                title={msg.role === 'assistant' ? "Click to copy" : undefined}
+                title={msg.role === 'assistant' ? 'Click to copy' : undefined}
               >
                 {msg.content}
               </div>
@@ -115,7 +119,10 @@ export function MunicipalityCopilot() {
               <div className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 px-3 py-2 rounded-md font-mono">
                 {error}
               </div>
-              <button onClick={retryLast} className="flex items-center gap-1 text-xs text-text-tertiary hover:text-white transition-colors">
+              <button
+                onClick={retryLast}
+                className="flex items-center gap-1 text-xs text-text-tertiary hover:text-white transition-colors"
+              >
                 <RefreshCcw className="w-3 h-3" /> Retry
               </button>
             </div>
@@ -131,7 +138,7 @@ export function MunicipalityCopilot() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        
+
         {/* Suggested Prompts overlay when empty */}
         {messages.length === 1 && !isLoading && (
           <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-2 mt-4">
