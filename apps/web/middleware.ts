@@ -11,11 +11,6 @@ export function middleware(req: NextRequest) {
 
   const protectedRoutes = ['/dashboard', '/feed', '/issue', '/leaderboard', '/map', '/report'];
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
-  const isAuthPage = pathname.startsWith('/login');
-
-  if (isAuthPage && hasSession) {
-    return NextResponse.redirect(new URL('/feed', nextUrl));
-  }
 
   if (isProtectedRoute && !hasSession) {
     return NextResponse.redirect(

@@ -101,24 +101,39 @@ function LoginForm() {
     setError('');
     setLoading(true);
 
-    const res = await signIn('credentials', {
-      redirect: false,
+    const redirectTo = portalType === 'municipality' ? '/dashboard' : '/feed';
+
+    try {
+      // Step 1: Validate credentials directly against the API for immediate error feedback
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://communityos-0d4d.onrender.com';
+      const validateRes = await fetch(`${API_URL}/api/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-auth-transport': 'json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const validateJson = await validateRes.json();
+
+      if (!validateJson.success) {
+        setError(validateJson.message || 'Invalid email or password.');
+        setLoading(false);
+        return;
+      }
+    } catch {
+      setError('Unable to reach the server. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    // Step 2: Credentials are valid — let NextAuth set the session cookie and redirect
+    // In NextAuth v5 beta, signIn() with credentials always redirects server-side.
+    // We pass redirectTo so NextAuth sends the user to the right page after auth.
+    await signIn('credentials', {
       email,
       password,
+      redirectTo,
     });
-
-    if (res?.error) {
-      setError(res.error);
-      setLoading(false);
-    } else {
-      // Middleware handles redirection to /dashboard (municipality) or /feed (citizen)
-      // For immediate client redirection assurance:
-      if (portalType === 'municipality') {
-        router.push('/dashboard');
-      } else {
-        router.push('/feed');
-      }
-    }
+    // If we reach here, the redirect didn't fire (e.g. SSR edge case) — fallback:
+    router.push(redirectTo);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -137,19 +152,13 @@ function LoginForm() {
         });
 
         if (regRes.data?.success) {
-          // Auto login after citizen registration
-          const loginRes = await signIn('credentials', {
-            redirect: false,
+          // Auto login after citizen registration — use redirectTo to let NextAuth set cookie properly
+          await signIn('credentials', {
             email,
             password,
+            redirectTo: '/feed',
           });
-
-          if (loginRes?.error) {
-            setError('Registration succeeded, but auto-login failed. Please sign in manually.');
-            setActiveTab('login');
-          } else {
-            router.push('/feed');
-          }
+          router.push('/feed');
         }
       } else {
         // Municipality Access Request submission
