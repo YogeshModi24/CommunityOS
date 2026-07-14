@@ -105,34 +105,44 @@ export function Sidebar({ user }: { user: any }) {
           )}
         >
           <Avatar name={user?.name || 'Citizen'} size={40} />
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-white truncate font-display">
-                {user?.name || 'Citizen'}
-              </div>
-              <div className="text-[11px] font-bold text-text-tertiary truncate flex justify-between uppercase tracking-widest mt-1">
-                <span>{user?.role || 'Citizen'}</span>
-                <span className="text-citizen font-mono">{user?.points || 0} XP</span>
-              </div>
-              {user?.ward && (
-                <div className="text-[10px] uppercase text-text-muted mt-1 tracking-widest font-bold">
-                  {user.ward}
-                </div>
-              )}
+          <div
+            className={clsx(
+              'flex-1 min-w-0 transition-all duration-300 ease-in-out',
+              isCollapsed
+                ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                : 'opacity-100 max-w-[200px]'
+            )}
+          >
+            <div className="text-sm font-bold text-white truncate font-display">
+              {user?.name || 'Citizen'}
             </div>
-          )}
+            <div className="text-[11px] font-bold text-text-tertiary truncate flex justify-between uppercase tracking-widest mt-1">
+              <span>{user?.role || 'Citizen'}</span>
+              <span className="text-citizen font-mono">{user?.points || 0} XP</span>
+            </div>
+            {user?.ward && (
+              <div className="text-[10px] uppercase text-text-muted mt-1 tracking-widest font-bold">
+                {user.ward}
+              </div>
+            )}
+          </div>
         </Link>
       </div>
 
       <nav className="flex-1 flex flex-col gap-8 overflow-y-auto hide-scrollbar px-3">
         {/* Main Nav */}
         <div className="flex flex-col gap-2">
-          {!isCollapsed && (
-            <div className="px-5 mb-2 text-[10px] font-bold text-text-tertiary uppercase tracking-widest flex items-center gap-2">
-              <span className="w-4 h-px bg-border"></span>
-              Workspace
-            </div>
-          )}
+          <div
+            className={clsx(
+              'px-5 mb-2 text-[10px] font-bold text-text-tertiary uppercase tracking-widest flex items-center gap-2 transition-all duration-300 ease-in-out',
+              isCollapsed
+                ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                : 'opacity-100 max-w-[200px]'
+            )}
+          >
+            <span className="w-4 h-px bg-border"></span>
+            Workspace
+          </div>
           {NAV_ITEMS.map((item) => {
             const isActive =
               currentPath === item.href ||
@@ -170,11 +180,16 @@ export function Sidebar({ user }: { user: any }) {
                 >
                   {item.icon}
                 </span>
-                {!isCollapsed && (
-                  <span className="relative z-10 whitespace-nowrap tracking-wide">
-                    {item.label}
-                  </span>
-                )}
+                <span
+                  className={clsx(
+                    'relative z-10 whitespace-nowrap tracking-wide transition-all duration-300 ease-in-out',
+                    isCollapsed
+                      ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                      : 'opacity-100 max-w-[200px]'
+                  )}
+                >
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -214,16 +229,21 @@ export function Sidebar({ user }: { user: any }) {
               >
                 admin_panel_settings
               </span>
-              {!isCollapsed && (
-                <span className="relative z-10 whitespace-nowrap tracking-wide flex items-center justify-between w-full">
-                  <span>Clearance Control</span>
-                  {pendingCount > 0 && (
-                    <span className="ml-2 px-2 py-0.5 rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(244,63,94,0.5)] border border-rose-600 animate-pulse">
-                      {pendingCount}
-                    </span>
-                  )}
-                </span>
-              )}
+              <span
+                className={clsx(
+                  'relative z-10 whitespace-nowrap tracking-wide flex items-center justify-between w-full transition-all duration-300 ease-in-out',
+                  isCollapsed
+                    ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                    : 'opacity-100 max-w-[200px]'
+                )}
+              >
+                <span>Clearance Control</span>
+                {pendingCount > 0 && (
+                  <span className="ml-2 px-2 py-0.5 rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(244,63,94,0.5)] border border-rose-600 animate-pulse">
+                    {pendingCount}
+                  </span>
+                )}
+              </span>
               {isCollapsed && pendingCount > 0 && (
                 <span className="absolute top-2 right-2 w-4 h-4 flex items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white border border-rose-600 shadow-[0_0_10px_rgba(244,63,94,0.5)] z-20">
                   {pendingCount}
@@ -235,14 +255,19 @@ export function Sidebar({ user }: { user: any }) {
 
         {/* Shortcuts */}
         <div className="flex flex-col gap-2">
-          {!isCollapsed && (
-            <div className="px-5 mb-2 text-[10px] font-bold text-text-tertiary uppercase tracking-widest flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-px bg-border"></span>
-                Quick Actions
-              </div>
+          <div
+            className={clsx(
+              'px-5 mb-2 text-[10px] font-bold text-text-tertiary uppercase tracking-widest flex items-center justify-between transition-all duration-300 ease-in-out',
+              isCollapsed
+                ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                : 'opacity-100 max-w-[200px]'
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-px bg-border"></span>
+              Quick Actions
             </div>
-          )}
+          </div>
 
           <button
             className={clsx(
@@ -255,14 +280,19 @@ export function Sidebar({ user }: { user: any }) {
             <span className="material-symbols-outlined text-[22px] relative z-10 group-hover:scale-110 transition-transform">
               search
             </span>
-            {!isCollapsed && (
-              <div className="flex flex-1 items-center justify-between relative z-10 tracking-wide">
-                <span>Search</span>
-                <kbd className="text-[10px] font-mono font-bold bg-layer2 px-2 py-1 rounded text-text-tertiary border border-border shadow-inner">
-                  ⌘K
-                </kbd>
-              </div>
-            )}
+            <div
+              className={clsx(
+                'flex flex-1 items-center justify-between relative z-10 tracking-wide transition-all duration-300 ease-in-out',
+                isCollapsed
+                  ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                  : 'opacity-100 max-w-[200px]'
+              )}
+            >
+              <span>Search</span>
+              <kbd className="text-[10px] font-mono font-bold bg-layer2 px-2 py-1 rounded text-text-tertiary border border-border shadow-inner">
+                ⌘K
+              </kbd>
+            </div>
           </button>
 
           <button
@@ -274,11 +304,20 @@ export function Sidebar({ user }: { user: any }) {
             title={isCollapsed ? 'Notifications' : undefined}
           >
             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
-            <div className="relative z-10 group-hover:scale-110 transition-transform">
+            <div className="relative z-10 group-hover:scale-110 transition-transform flex shrink-0">
               <span className="material-symbols-outlined text-[22px]">notifications</span>
               <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.8)] border-2 border-layer1"></span>
             </div>
-            {!isCollapsed && <span className="relative z-10 tracking-wide">Notifications</span>}
+            <span
+              className={clsx(
+                'relative z-10 tracking-wide transition-all duration-300 ease-in-out',
+                isCollapsed
+                  ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                  : 'opacity-100 max-w-[200px]'
+              )}
+            >
+              Notifications
+            </span>
           </button>
         </div>
       </nav>
@@ -296,7 +335,16 @@ export function Sidebar({ user }: { user: any }) {
             <span className="material-symbols-outlined text-[24px] group-hover:rotate-90 transition-transform duration-300">
               add
             </span>
-            {!isCollapsed && <span className="whitespace-nowrap tracking-wide">Report Issue</span>}
+            <span
+              className={clsx(
+                'whitespace-nowrap tracking-wide transition-all duration-300 ease-in-out',
+                isCollapsed
+                  ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none'
+                  : 'opacity-100 max-w-[200px]'
+              )}
+            >
+              Report Issue
+            </span>
           </Link>
         </div>
       )}

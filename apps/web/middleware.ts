@@ -1,33 +1,30 @@
-import { auth } from './lib/auth';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export default auth((req: any) => {
-  const isLoggedIn = !!req.auth;
-  const nextUrl = (req as any).nextUrl;
+export function middleware(req: NextRequest) {
+  const nextUrl = req.nextUrl;
   const pathname = nextUrl.pathname;
+
+  const hasSession =
+    req.cookies.has('next-auth.session-token') ||
+    req.cookies.has('__Secure-next-auth.session-token');
 
   const protectedRoutes = ['/dashboard', '/feed', '/issue', '/leaderboard', '/map', '/report'];
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthPage = pathname.startsWith('/login');
 
-  if (isAuthPage && isLoggedIn) {
-    const hasType = nextUrl.searchParams.has('type');
-    if (!hasType) {
-      const role = (req.auth as any)?.user?.role;
-      if (role === 'MUNICIPALITY' || role === 'municipality') {
-        return Response.redirect(new URL('/dashboard', nextUrl));
-      }
-      return Response.redirect(new URL('/feed', nextUrl));
-    }
+  if (isAuthPage && hasSession) {
+    return NextResponse.redirect(new URL('/feed', nextUrl));
   }
 
-  if (isProtectedRoute && !isLoggedIn) {
-    return Response.redirect(
+  if (isProtectedRoute && !hasSession) {
+    return NextResponse.redirect(
       new URL(`/login?callbackUrl=${encodeURIComponent(pathname)}`, nextUrl)
     );
   }
 
-  return undefined;
-}) as any;
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],

@@ -36,20 +36,47 @@ export default function LandingPage() {
     null
   );
   const [statsLoading, setStatsLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Connecting to live infrastructure...');
 
   useEffect(() => {
-    // Attempt to fetch real platform statistics
-    // The user requested NO MOCK DATA. If it fails, we show Empty States.
-    api
-      .get('/api/stats')
-      .then((res) => {
-        setStats(res.data);
-        setStatsLoading(false);
-      })
-      .catch(() => {
-        setStats(null);
-        setStatsLoading(false);
-      });
+    let active = true;
+    let retryTimer: NodeJS.Timeout;
+    let attempts = 0;
+
+    const fetchStats = () => {
+      if (!active) return;
+      setStatsLoading(true);
+      if (attempts > 0) {
+        setLoadingMessage(`Connecting to live infrastructure... (Attempt ${attempts + 1})`);
+      } else {
+        setLoadingMessage('Connecting to live infrastructure...');
+      }
+
+      api
+        .get('/api/stats')
+        .then((res) => {
+          if (!active) return;
+          setStats(res.data);
+          setStatsLoading(false);
+        })
+        .catch(() => {
+          if (!active) return;
+          attempts++;
+          if (attempts < 12) {
+            retryTimer = setTimeout(fetchStats, 5000);
+          } else {
+            setStats(null);
+            setStatsLoading(false);
+          }
+        });
+    };
+
+    fetchStats();
+
+    return () => {
+      active = false;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, []);
 
   return (
@@ -258,7 +285,7 @@ export default function LandingPage() {
                 <OSStateView
                   type="loading"
                   title="Analyzing Telemetry"
-                  description="Crunching regional infrastructure data..."
+                  description={loadingMessage}
                 />
               </div>
             ) : stats ? (
